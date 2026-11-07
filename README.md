@@ -31,6 +31,9 @@
   <a href="#-creator-production-playbook--prompt-recipes"><b>📘 Creator Playbook</b></a>
 </p>
 
+> [!NOTE]
+> 📢 **Pro Studio Marketplace Notice:** The **Pro Studio Edition ($4.99)** has been submitted and is currently undergoing official marketplace verification on **[Agensi.io](https://www.agensi.io/skills/flow-film-director)**. If the page displays *Under Review* or is temporarily not found, don't worry — it will be officially live and available on **Agensi** within **2 days**! You can start using the Free Community Edition on GitHub right now.
+
 ---
 
 ## 💡 Overview & The Generative Video Problem
@@ -99,7 +102,8 @@ Flow Film Director is distributed under a transparent **Open Core** model:
 <p align="center">
   <a href="https://www.agensi.io/skills/flow-film-director">
     <img src="https://img.shields.io/badge/🚀%20Get%20Pro%20Studio%20on%20Agensi-Instant%20Access%20($4.99)-6366F1?style=for-the-badge&logo=sparkles&logoColor=white" alt="Upgrade to Pro Studio on Agensi" />
-  </a>
+  </a><br/>
+  <sub>⏳ <i>Listing submitted and completing review — if temporarily not found, it will be live on Agensi within 2 days!</i></sub>
 </p>
 
 ---

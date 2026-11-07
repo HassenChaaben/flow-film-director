@@ -1,0 +1,6 @@
+{
+  "name": "flow-film-director",
+  "displayName": "Flow Film Director",
+  "version": "1.2.0",
+  "description": "Deterministic gated pipeline for Google Flow videos (via flow-mcp): required idea or reference video, intent profiles, cleaned references, face / object / motion checks, storyboard.json compiled into exact prompts, verified keyframes, per-clip review and fix loop, assembly and final watch."
+}

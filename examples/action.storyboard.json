@@ -1,0 +1,184 @@
+{
+  "flow_project": "DuoFight",
+  "mode": "fast",
+  "intent": "action",
+  "tone": "Grounded, tense, serious cinematic action realism",
+  "aspect_ratio": "16:9",
+  "default_model": "Omni 1.1 Flash",
+  "resolution": "720p",
+  "differences": "Sam is the taller one with curls and glasses; Lina has a dark ponytail and no glasses.",
+  "cast": {
+    "Sam": {
+      "kind": "person",
+      "ref": "asset:Sam",
+      "outfit": "a black tactical jacket and dark cargo trousers",
+      "identity": "late 20s, tall, slim, tight black curls, short boxed beard, grey rounded-square glasses"
+    },
+    "Lina": {
+      "kind": "person",
+      "ref": "asset:Lina",
+      "outfit": "an olive green tactical jacket and dark cargo trousers",
+      "identity": "late 20s, athletic, straight black hair in a low ponytail, oval face, no glasses"
+    },
+    "Guards": {
+      "kind": "extra",
+      "count": 4,
+      "look": "masked guards in matte grey armour and full-face black helmets"
+    }
+  },
+  "scenes": [
+    {
+      "id": 1,
+      "title": "Face-off",
+      "duration": 6,
+      "shot": {
+        "size": "medium-wide shot",
+        "angle": "eye-level, side-on three-quarter view, camera beside the fighters",
+        "lens": "35mm",
+        "camera_move": "slow push-in"
+      },
+      "location": {
+        "description": "an empty concrete parking garage at night, wet floor"
+      },
+      "light": "cold overhead strip lights, light haze",
+      "characters": [
+        {
+          "name": "Sam",
+          "start": "in a fighting stance facing the guards",
+          "position": "left"
+        },
+        {
+          "name": "Lina",
+          "start": "in a fighting stance beside Sam",
+          "position": "right"
+        }
+      ],
+      "sides": {
+        "allies": [
+          "Sam",
+          "Lina"
+        ],
+        "opponents": "Guards",
+        "staging": "Sam and Lina on the left facing right; the guards on the right facing them"
+      },
+      "beats": [
+        {
+          "from": 0,
+          "to": 3,
+          "who": "The guards",
+          "action": "walk slowly toward Sam and Lina"
+        },
+        {
+          "from": 3,
+          "to": 6,
+          "who": "Sam and Lina",
+          "action": "raise their fists and step forward toward the guards",
+          "target": "Guards"
+        }
+      ],
+      "sound": "footsteps echoing, low tense drone"
+    },
+    {
+      "id": 2,
+      "title": "First clash",
+      "duration": 6,
+      "shot": {
+        "size": "medium-wide shot",
+        "angle": "eye-level, three-quarter view toward camera",
+        "lens": "35mm",
+        "camera_move": "steady handheld follow"
+      },
+      "location": {
+        "description": "the same concrete parking garage at night, wet floor"
+      },
+      "light": "cold overhead strip lights, light haze",
+      "characters": [
+        {
+          "name": "Sam",
+          "start": "facing a guard on the left",
+          "position": "left"
+        },
+        {
+          "name": "Lina",
+          "start": "facing a guard on the right",
+          "position": "right"
+        }
+      ],
+      "sides": {
+        "allies": [
+          "Sam",
+          "Lina"
+        ],
+        "opponents": "Guards",
+        "staging": "Sam and Lina fight back to back, each facing a guard"
+      },
+      "beats": [
+        {
+          "from": 0,
+          "to": 3,
+          "who": "Sam",
+          "action": "blocks a guard's punch with his forearm and pushes the guard back",
+          "target": "Guards"
+        },
+        {
+          "from": 2,
+          "to": 6,
+          "who": "Lina",
+          "action": "grabs a charging guard by the shoulders and throws him to the floor",
+          "target": "Guards"
+        }
+      ],
+      "sound": "impacts, grunts, footsteps"
+    },
+    {
+      "id": 3,
+      "title": "Victory",
+      "duration": 6,
+      "shot": {
+        "size": "medium shot",
+        "angle": "eye-level, three-quarter view toward camera",
+        "lens": "50mm",
+        "camera_move": "slow push-in"
+      },
+      "location": {
+        "description": "the same concrete parking garage at night, guards sitting on the floor in the background"
+      },
+      "light": "cold overhead strip lights, light haze",
+      "characters": [
+        {
+          "name": "Sam",
+          "start": "standing upright, breathing hard",
+          "position": "left"
+        },
+        {
+          "name": "Lina",
+          "start": "standing upright, breathing hard",
+          "position": "right"
+        }
+      ],
+      "sides": {
+        "allies": [
+          "Sam",
+          "Lina"
+        ],
+        "opponents": "Guards",
+        "staging": "Sam and Lina stand side by side in the foreground; the defeated guards sit on the floor, dazed behind them"
+      },
+      "beats": [
+        {
+          "from": 0,
+          "to": 3,
+          "who": "Sam and Lina",
+          "action": "catch their breath and look at each other"
+        },
+        {
+          "from": 3,
+          "to": 6,
+          "who": "Sam and Lina",
+          "action": "nod once to each other and turn toward the camera"
+        }
+      ],
+      "sound": "breathing, distant dripping water"
+    }
+  ]
+}

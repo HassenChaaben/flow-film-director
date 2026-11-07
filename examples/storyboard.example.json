@@ -1,0 +1,89 @@
+{
+  "flow_project": "CafeMeeting",
+  "intent": "story",
+  "style_mode": "photoreal",
+  "style": "natural colour, soft contrast, documentary look",
+  "aspect_ratio": "9:16",
+  "default_model": "Omni 1.1 Flash",
+  "resolution": "720p",
+  "differences": "Sam is the taller one with tight dark curls and a short trimmed beard; Lina has straight shoulder-length black hair and no glasses.",
+  "cast": {
+    "Sam": {
+      "kind": "person",
+      "ref": "asset:Sam",
+      "lock": "Sam: man about 30, slim athletic build, half a head taller than Lina. Tight dark-brown curls, short on the sides, about 4 cm on top. Long oval face, narrow chin. Straight thick eyebrows, dark-brown almond eyes, straight nose with a rounded tip. Short trimmed black beard about 3 mm, denser on the chin, high straight cheek line. Warm light-olive skin. No glasses. Real photographic likeness of the reference photos; do not beautify, do not change age, weight or features.",
+      "outfit": "plain white linen shirt, beige chinos"
+    },
+    "Lina": {
+      "kind": "person",
+      "ref": "asset:Lina",
+      "lock": "Lina: woman about 30, average build. Straight black hair to the shoulders, middle parting. Oval face, soft jaw. Arched dark eyebrows, brown eyes, small straight nose, full lips. Light-brown skin, small mole on the left cheek. No glasses. Real photographic likeness of the reference photos; do not beautify, do not change age, weight or features.",
+      "outfit": "navy knit sweater, dark jeans"
+    }
+  },
+  "scenes": [
+    {
+      "id": 1,
+      "title": "Sam waits at the cafe table",
+      "duration": 6,
+      "shot": {"size": "medium close-up", "angle": "eye-level", "lens": "50mm", "camera_move": "static locked-off camera"},
+      "location": {"description": "small cafe terrace, round white marble table, green awning, potted olive tree behind"},
+      "light": "late afternoon sun from camera-left, soft warm fill",
+      "characters": [
+        {
+          "name": "Sam",
+          "position": "centre",
+          "start": "sitting at the table, back straight, right hand next to a white cup, looking down at a phone in his left hand",
+          "end": "sitting, phone lying flat on the table, looking up toward screen-right with a small smile",
+          "expression": "relaxed, then a small closed-mouth smile"
+        }
+      ],
+      "beats": [
+        {"from": 0.0, "to": 2.0, "who": "Sam", "action": "scrolls once on the phone with his thumb"},
+        {"from": 2.0, "to": 3.5, "who": "Sam", "action": "lowers the phone and lays it flat on the table"},
+        {"from": 3.5, "to": 6.0, "who": "Sam", "action": "lifts his head and looks toward screen-right with a small smile"}
+      ],
+      "props": ["white ceramic cup", "black smartphone"],
+      "start_moment": "The quiet moment before his friend arrives.",
+      "end_moment": "He has just noticed his friend arriving.",
+      "sound": "quiet cafe ambience, distant street",
+      "use_end_frame": true,
+      "variants": 4
+    },
+    {
+      "id": 2,
+      "title": "Lina arrives and greets him",
+      "duration": 6,
+      "shot": {"size": "medium shot", "angle": "eye-level", "lens": "35mm", "camera_move": "very slow push-in"},
+      "location": {"description": "the same cafe terrace, round white marble table, green awning, potted olive tree behind"},
+      "light": "late afternoon sun from camera-left, soft warm fill",
+      "characters": [
+        {"name": "Sam", "position": "left third", "start": "sitting at the table, looking up at Lina", "end": "sitting, smiling at Lina", "expression": "warm smile"},
+        {"name": "Lina", "position": "right third", "start": "standing next to the table, right hand resting on the back of the empty chair", "end": "sitting down on the chair, both hands on the table", "expression": "friendly smile"}
+      ],
+      "beats": [
+        {"from": 0.0, "to": 1.5, "who": "Lina", "action": "pulls the chair back a little with her right hand"},
+        {"from": 1.5, "to": 4.5, "who": "Lina", "action": "sits down slowly and rests both hands on the table"},
+        {"from": 4.5, "to": 6.0, "who": "Sam", "action": "smiles and gives one small nod"}
+      ],
+      "dialogue": [{"who": "Lina", "line": "Sorry I'm late.", "mode": "says"}],
+      "sound": "quiet cafe ambience, chair scraping softly on stone",
+      "use_end_frame": true,
+      "variants": 4
+    },
+    {
+      "id": 3,
+      "title": "Establishing shot of the street",
+      "duration": 4,
+      "shot": {"size": "wide shot", "angle": "slightly high", "lens": "24mm", "camera_move": "slow pan right"},
+      "location": {"description": "narrow old-town street with pastel houses, the cafe terrace with its green awning on the right"},
+      "light": "late afternoon sun, long soft shadows",
+      "characters": [],
+      "background_people": "two small blurred passers-by far down the street",
+      "beats": [{"from": 0.0, "to": 4.0, "who": "camera", "action": "pans slowly right until the cafe awning is in the centre"}],
+      "sound": "street ambience, distant birds",
+      "use_end_frame": false,
+      "variants": 2
+    }
+  ]
+}

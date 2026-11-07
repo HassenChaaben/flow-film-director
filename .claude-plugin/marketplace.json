@@ -1,0 +1,15 @@
+{
+  "name": "flow-film-director",
+  "metadata": { "description": "Flow Film Director - consistent, realistic, reference-accurate videos with Google Flow." },
+  "owner": { "name": "Hassen Ben Chaaben", "url": "https://github.com/HassenChaaben" },
+  "plugins": [
+    {
+      "name": "flow-film-director",
+      "description": "Direct Google Flow like a film crew: same faces, products and places in every shot, real-looking actions, shot-for-shot remakes of reference videos, measured review of every clip.",
+      "author": { "name": "Hassen Ben Chaaben" },
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/HassenChaaben/flow-film-director"
+    }
+  ]
+}

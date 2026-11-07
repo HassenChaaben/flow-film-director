@@ -1,0 +1,2 @@
+flow-film-director.patch is made against GTAI-1/flow-mcp main at commit 84b548f (full hash 84b548f3aa72b749b82cdbfbb6f91cadebae8642).
+If patch_flow_mcp.py reports CONFLICT, your flow-mcp has moved on: check out that commit, or apply the hunks by hand.

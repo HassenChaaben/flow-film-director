@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+# working folders created by the skill (your photos and videos stay private)
+film/
+prompts/
+*.mp4
+!examples/showcase/**/*.mp4
+*.mov
+*.webm
+*.onnx
+*.task
+.DS_Store
+Thumbs.db
+.superpowers/

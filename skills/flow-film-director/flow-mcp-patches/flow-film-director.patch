@@ -1,0 +1,638 @@
+diff --git a/src/core.ts b/src/core.ts
+index 95d6993..ec23257 100644
+--- a/src/core.ts
++++ b/src/core.ts
+@@ -6,7 +6,7 @@ import { assemble, localVoices, speakLocally, voiceTrack } from "./assemble.js";
+ import { GEMINI_VOICES, geminiKey, saveGeminiKey, speakWithGemini } from "./gemini.js";
+ import { extractLastFrame } from "./chain.js";
+ import { burnCaptions, captionedName, captionSetup, previewCaptions, transcribe } from "./captions.js";
+-import { characterLook, createCharacter, downloadAsset, trashAsset, editCharacter, getFlowState, listAssets, listCharacters, rememberCharacter, runAgentBatch, runContinue, runEdit, runGeneration } from "./flow.js";
++import { characterLook, createCharacter, downloadAsset, trashAsset, editCharacter, getFlowState, listAssets, listCharacters, rememberCharacter, runAgentBatch, runContinue, runEdit, runGeneration, runParallel } from "./flow.js";
+ import { JobQueue, type Job } from "./queue.js";
+ import { BIN, COMPUTER, IS_MAC, IS_WIN, moveToBin } from "./platform.js";
+ import { TECHNIQUES, techniqueById } from "./techniques.js";
+@@ -24,7 +24,7 @@ const sceneSchema = z.object({
+     .optional()
+     .describe("Model label as shown in Flow, e.g. 'Omni 1.1 Flash', 'Veo 3.1 - Fast', 'Veo 3.1 - Quality', 'Nano Banana Pro'. Images default to the newest Nano Banana (2.1 today); video omitted keeps Flow's current model."),
+   aspect_ratio: z.enum(["16:9", "9:16", "1:1", "4:3", "3:4"]).optional().describe("Video supports 16:9 and 9:16 only."),
+-  duration: z.union([z.literal(4), z.literal(6), z.literal(8), z.literal(10)]).optional().describe("Video length in seconds. Omni models only; Veo 3.1 clips are fixed at 8s."),
++  duration: z.number().int().min(3).max(15).optional().describe("Video length in seconds (Flow offers 4/6/8/10 on Omni 1.1, 3-15 on Omni Flash 1.2; Veo 3.1 is fixed at 8 s). Must be an option Flow shows for the chosen model."),
+   resolution: z.enum(["360p", "720p"]).optional().describe("Video resolution. Omni models only."),
+   max_credits: z.number().int().min(0).default(25).describe("Safety cap: the scene is skipped (nothing spent) if Flow quotes more credits than this."),
+   variants: z.number().int().min(1).max(4).optional().describe("Outputs per prompt (each one spends credits). Default 1."),
+@@ -44,6 +44,14 @@ const sceneSchema = z.object({
+     .boolean()
+     .optional()
+     .describe("Use the previous scene's finished image as an extra reference, so this scene inherits its exact drawing of the characters, style and palette. Best way to keep a set of stills on-model."),
++  parallel: z
++    .boolean()
++    .optional()
++    .describe("Submit this scene together with the other parallel scenes of the call (up to FLOW_MCP_PARALLEL_MAX, default 4, at once) and collect them together: a 60 s film renders in a few batches instead of one job at a time. Not with chain_previous/reference_previous."),
++  builder_lock: z
++    .boolean()
++    .optional()
++    .describe("The prompt already carries its own identity text (written by a prompt builder): add NO character lock and NO stored look to it."),
+   chain_previous: z
+     .boolean()
+     .optional()
+@@ -227,6 +235,7 @@ export const shapes = {
+   characters: {},
+   character_edit: {
+     name: z.string().min(1).describe("Character to change, as listed by flow_characters."),
++    rename_to: z.string().min(1).max(60).optional().describe("New name for the character (e.g. to retire an old version before creating a better one under the same name)."),
+     change: z
+       .string()
+       .min(1)
+@@ -347,7 +356,7 @@ export class LocalCore implements Core {
+     if (job.params.agent_scenes) return runAgentBatch(job);
+     if (job.params.edit_asset) return runEdit(job);
+     return runGeneration(job);
+-  });
++  }, (jobs) => runParallel(jobs));
+ 
+   async status({ detailed }: Args<"status">) {
+     const flow = await getFlowState(detailed && !this.queue.busy);
+@@ -370,7 +379,8 @@ export class LocalCore implements Core {
+     const queued = this.queue.list().filter((j) => j.params.output_dir === output_dir).map((j) => Number(j.params.file_stem.match(/\d+/)?.[0] ?? 0));
+     const offset = Math.max(0, ...onDisk, ...queued);
+     const jobs: Job[] = [];
+-    for (const [i, { chain_previous, reference_previous, technique, ...scene }] of scenes.entries()) {
++    const group = `g-${Date.now().toString(36)}`;
++    for (const [i, { chain_previous, reference_previous, technique, parallel: _parallel, builder_lock, ...scene }] of scenes.entries()) {
+       const phrase = technique ? techniqueById(technique)!.phrase : "";
+       // A referenced character must come out identical, not merely similar, so the scene says so explicitly. The
+       // wording stays medium-neutral: the same lock has to serve a flat cartoon character and a photoreal avatar.
+@@ -378,8 +388,10 @@ export class LocalCore implements Core {
+         .filter((r) => r.startsWith("asset:"))
+         .map((r) => r.slice(6).trim())
+         .filter((n) => characterLook(n) !== undefined || /^[\w .'-]{1,60}$/.test(n));
+-      const lock = cast.length
+-        ? ` CHARACTER LOCK — ${cast.join(" and ")} must match the reference image exactly, as if copying it: same head shape and size, same face, same eyes, same hair, same skin, same build and proportions, same clothing items in the same colours, same hands, and the same rendering style and level of realism as the reference. Never redesign, restyle, re-proportion, re-age or re-colour them, and never swap an item for a similar one.${cast
++      // One sentence per character against ITS OWN reference: a single "the reference image" for several people made
++      // the model blend them, and "as if copying it" made it copy the photo's pose and clothes instead of acting.
++      const lock = cast.length && !builder_lock
++        ? ` CHARACTER LOCK — ${cast.map((n) => `${n} looks exactly like the ${n} reference image: same face, eyes, hair, skin, build and proportions`).join("; ")}. Keep their age and rendering realism; the action, pose and outfit come from this prompt.${cast
+             .map((n) => (characterLook(n) ? ` ${n} is exactly: ${characterLook(n)}.` : ""))
+             .join("")}`
+         : "";
+@@ -389,6 +401,7 @@ export class LocalCore implements Core {
+       jobs.push(
+         this.queue.add({
+           ...scene,
++          parallel_group: _parallel && !chain_previous && !reference_previous ? group : undefined,
+           prompt: `${scene.prompt.trim().replace(/\.?$/, ".")}${phrase ? ` ${phrase}` : ""}${lock}${inherit}`,
+           chain_from: chain_previous ? jobs[i - 1].id : undefined,
+           reference_from: reference_previous ? jobs[i - 1].id : undefined,
+@@ -629,9 +642,10 @@ export class LocalCore implements Core {
+     return { ...made, use_as: `asset:${a.name}` };
+   }
+ 
+-  async character_edit({ name, change, look }: Args<"character_edit">) {
++  async character_edit({ name, change, look, rename_to }: Args<"character_edit">) {
+     if (this.queue.busy) throw new Error(BUSY);
+-    const out = await editCharacter(name, change);
++    const out = await editCharacter(name, change, undefined, rename_to);
++    if (rename_to) name = rename_to;
+     // Every scene that references the character quotes this description in its character lock, so it has to describe
+     // the NEW look - "deep navy coat" left in it would argue with a portrait whose coat is now red.
+     if (look) rememberCharacter(name, look);
+diff --git a/src/flow.ts b/src/flow.ts
+index 1a8d4ac..f11b977 100644
+--- a/src/flow.ts
++++ b/src/flow.ts
+@@ -17,6 +17,8 @@ export interface FlowState {
+ }
+ 
+ const IMAGE_TIMEOUT_MS = 3 * 60_000;
++const SUBMIT_GAP_MIN_MS = Number(process.env.FLOW_MCP_SUBMIT_GAP_MIN_S ?? 20) * 1000;
++const SUBMIT_GAP_MAX_MS = Number(process.env.FLOW_MCP_SUBMIT_GAP_MAX_S ?? 40) * 1000;
+ const VIDEO_TIMEOUT_MS = 12 * 60_000;
+ const FAILURE_TEXT = /failed|couldn.t|unable/i;
+ 
+@@ -345,7 +347,9 @@ async function pickModel(page: Page, model: string): Promise<void> {
+   const items = page.getByRole("menuitem");
+   await items.first().waitFor({ state: "visible", timeout: 5000 });
+   const names = (await items.allInnerTexts()).map((t) => t.replace(/\s+/g, " ").trim());
+-  const index = latest ? newestNanoBanana(names) : names.findIndex((n) => n.toLowerCase().includes(model.toLowerCase()));
++  const tokens = model.toLowerCase().split(/[\s-]+/).filter(Boolean);
++  let index = latest ? newestNanoBanana(names) : names.findIndex((n) => n.toLowerCase().includes(model.toLowerCase()));
++  if (index < 0 && !latest) index = names.findIndex((n) => tokens.every((t) => n.toLowerCase().split(/[\s-]+/).includes(t)));
+   const shown = (await button.innerText()).replace(/\s+/g, " ");
+   if (index < 0 || (latest && shown.includes(names[index]))) {
+     // Nothing to change (already the newest, or no numbered Nano Banana here at all): close the menu, pick nothing.
+@@ -414,12 +418,15 @@ async function uploadAsset(page: Page, job: Job, file: string, label: string): P
+ 
+ const escapeRe = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+ 
+-// Options read "<name>", "<name> Image|Video|Avatar" or "<voice> <description>", so match on the leading name.
+-const optionByName = (list: Locator, name: string) =>
+-  list.getByRole("option", { name: new RegExp(`^${escapeRe(name)}`, "i") }).first();
++// Options read "<name>", "<name> Image|Video|Avatar" or "<voice> <description>".
++// Match exact name or name followed by recognized type suffixes/whitespace/newline to avoid prefix collisions (e.g. "Sam" vs "SamAndLinaFilm-scene-06").
++const optionByName = (list: Locator, name: string) => {
++  const strictPattern = new RegExp(`^${escapeRe(name)}(?:\\s*(?:Image|Video|Avatar|Character|Voice|accessibility_new|[-—:])\\s*.*|[\\n\\r].*)?$`, "i");
++  return list.getByRole("option", { name: strictPattern }).first();
++};
+ 
+ // The frame pickers attach on click; the ingredients picker only previews and needs "Add to prompt".
+-// Option names are "<asset name>" or "<asset name> Image|Video", so match on the prefix.
++// Option names are "<asset name>" or "<asset name> Image|Video".
+ export async function attachAsset(page: Page, opener: Locator, assetName: string): Promise<void> {
+   const list = page.getByRole("listbox", { name: "Asset list" });
+   const all = page.getByRole("tab", { name: "All", exact: true });
+@@ -438,24 +445,34 @@ export async function attachAsset(page: Page, opener: Locator, assetName: string
+     opened = await Promise.race([shows(list, 5000), shows(all, 5000)]);
+   }
+   if (!opened) throw new Error(`Flow's media picker did not open (three tries) while attaching "${assetName}". Nothing was generated.`);
+-  // The picker reopens on whichever tab was used last (Characters, after a character), so start from All each time.
+-  if ((await all.isVisible().catch(() => false)) && (await all.getAttribute("aria-selected")) !== "true") {
+-    await all.click();
+-    await pause(page, 1000);
+-  }
+-  await list.waitFor({ state: "visible", timeout: 10_000 });
++
++  const isChar = Boolean(characterLook(assetName));
++  const tabs = isChar
++    ? ["Characters", "All", "Uploads", "Avatars", "Voices"]
++    : ["All", "Characters", "Uploads", "Avatars", "Voices"];
++
+   let option = optionByName(list, assetName);
+-  // Voices, characters and avatars live behind their own tabs, so look there when "All" does not have it.
+-  if (!(await option.isVisible().catch(() => false))) {
+-    for (const tab of ["Voices", "Characters", "Avatars", "Uploads"]) {
+-      const t = page.getByRole("tab", { name: tab, exact: true });
+-      if (!(await t.isVisible().catch(() => false))) continue;
+-      await t.click();
+-      await pause(page, 1200);
+-      option = optionByName(list, assetName);
+-      if (await option.isVisible().catch(() => false)) break;
++  let found = false;
++
++  for (const tab of tabs) {
++    const t = page.getByRole("tab", { name: tab, exact: true });
++    if (await t.isVisible().catch(() => false)) {
++      const selected = (await t.getAttribute("aria-selected")) === "true";
++      if (!selected) {
++        await t.click();
++        await pause(page, 1000);
++      }
++    }
++    option = optionByName(list, assetName);
++    if (await option.isVisible().catch(() => false)) {
++      found = true;
++      break;
+     }
+   }
++
++  if (!found) {
++    option = optionByName(list, assetName);
++  }
+   await option.waitFor({ state: "visible", timeout: 10_000 });
+   await option.click();
+   const add = page.getByRole("button", { name: "Add to prompt", exact: true });
+@@ -767,16 +784,65 @@ async function ensureProjectGrid(page: Page): Promise<void> {
+   await scrollToTop(page);
+ }
+ 
++// Flow's grid has two view modes (top-bar Settings > View mode: Grid | Batch). In Batch view a generation is grouped
++// into one batch tile, so tile counting and the parallel batch logic see the wrong thing. Force Grid before a run.
++// Older Flow pages have no view modes: no top-bar Settings button means nothing to do. The composer has its own
++// "Settings" button inside flow-base-prompt-box, which is not this one.
++async function ensureGridView(page: Page): Promise<void> {
++  const settings = page.getByRole("button", { name: "Settings", exact: true }).and(page.locator(":not(flow-base-prompt-box *)"));
++  const button = settings.first();
++  if (!(await button.isVisible().catch(() => false))) return;
++  const gridRadio = () => page.locator(".cdk-overlay-container [role=radio]").filter({ hasText: /Grid\s*$/ }).first();
++  const open = async (): Promise<boolean> => {
++    await button.click({ timeout: 5000 }).catch(() => {});
++    await pause(page, 700);
++    return gridRadio().isVisible().catch(() => false);
++  };
++  const isChecked = async () => (await gridRadio().getAttribute("aria-checked").catch(() => null)) === "true";
++  const close = async () => {
++    await page.keyboard.press("Escape");
++    await pause(page, 400);
++    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur()).catch(() => {});
++  };
++  if (!(await open())) {
++    await close();
++    return;
++  }
++  if (await isChecked()) {
++    await close();
++    return;
++  }
++  await gridRadio().click({ timeout: 5000 }).catch(() => {});
++  await pause(page, 1500);
++  await close();
++  const reopened = await open();
++  const ok = reopened && (await isChecked());
++  await close();
++  if (!ok) throw new Error("Flow's grid is in Batch view and could not be switched to Grid; set View mode = Grid in Flow's top-bar Settings, then retry.");
++}
++
+ // Drives one generation in the Flow tab and returns the downloaded file paths.
+ export async function runGeneration(job: Job): Promise<string[]> {
+   const state = await getFlowState();
+   if (!state.signedIn || !state.inProject) throw new Error(state.hint);
+   const page = await getFlowPage();
+   const s = job.params;
+-
+   await ensureProjectGrid(page);
++  await ensureGridView(page);
++  const before = await submitGeneration(page, job);
++  const variants = s.variants ?? 1;
++  const fresh = await waitForNewMedia(page, before, variants, s.type === "image" ? IMAGE_TIMEOUT_MS : VIDEO_TIMEOUT_MS, job, s.type === "image" ? "image" : "video");
++  job.progress = undefined;
++  return saveResults(page, job, fresh);
++}
++
++// Fills the composer for one job and presses Start generation. Returns the grid snapshot taken just before.
++async function submitGeneration(page: Page, job: Job): Promise<string[]> {
++  const s = job.params;
+   const agent = page.getByRole("button", { name: "Agent", exact: true });
+-  if ((await agent.getAttribute("aria-pressed")) === "true") await agent.click();
++  if (await agent.isVisible({ timeout: 2000 }).catch(() => false)) {
++    if ((await agent.getAttribute("aria-pressed").catch(() => null)) === "true") await agent.click().catch(() => {});
++  }
+   const clear = page.getByRole("button", { name: "Clear prompt" });
+   if (await clear.isVisible().catch(() => false)) await clear.click();
+ 
+@@ -818,11 +884,12 @@ export async function runGeneration(job: Job): Promise<string[]> {
+   await scrollToTop(page);
+   const before = await mediaIds(page);
+   await start.click();
++  return before;
++}
+ 
+-  const variants = s.variants ?? 1;
+-  const fresh = await waitForNewMedia(page, before, variants, s.type === "image" ? IMAGE_TIMEOUT_MS : VIDEO_TIMEOUT_MS, job, s.type === "image" ? "image" : "video");
+-  job.progress = undefined;
+-
++// Renames each finished tile to the job's own stem and downloads it.
++async function saveResults(page: Page, job: Job, fresh: string[]): Promise<string[]> {
++  const s = job.params;
+   mkdirSync(s.output_dir, { recursive: true });
+   const files: string[] = [];
+   for (const [i, id] of fresh.entries()) {
+@@ -845,6 +912,209 @@ export async function runGeneration(job: Job): Promise<string[]> {
+   return files;
+ }
+ 
++// New tiles above the first tile that existed before the batch, top first (= newest first), our uploads excluded.
++// A tile is old when its id OR its title was in the grid before the batch: a video at rest is keyed by a signed URL
++// that Flow re-signs, so ids alone let old tiles slip in as "new" (a 3-clip batch read "15/3 finished").
++async function batchTiles(page: Page, known: string[], knownLabels: string[] = []): Promise<{ id?: string; busy: boolean; error: boolean; kind: string }[]> {
++  await scrollToTop(page);
++  return page.evaluate(([ids, labels, js]: [string[], string[], string]) => {
++    const idOf = eval(js) as (t: Element) => string | undefined;
++    const seen = new Set(ids);
++    const seenLabels = new Set(labels);
++    const out: { id?: string; busy: boolean; error: boolean; kind: string }[] = [];
++    for (const t of document.querySelectorAll("flow-grid-tile-container")) {
++      const id = idOf(t);
++      const label = t.getAttribute("aria-label") ?? "";
++      if ((id && seen.has(id)) || (label && seenLabels.has(label))) break;
++      if (label.startsWith("fm-")) continue;
++      const error = !!t.querySelector("flow-error-tile");
++      out.push({
++        id,
++        error,
++        kind: t.querySelector("flow-video-tile") ? "video" : t.querySelector("flow-image-tile") ? "image" : "other",
++        busy: !error && (/\d+%/.test((t as HTMLElement).innerText) ||
++          (!!t.querySelector("flow-video-tile") && !t.querySelector('img[alt="Generated video thumbnail"], video'))),
++      });
++    }
++    return out;
++  }, [known, knownLabels, TILE_ID_JS] as [string[], string[], string]);
++}
++
++const gridLabels = (page: Page) =>
++  page.evaluate(() => [...document.querySelectorAll("flow-grid-tile-container")].map((t) => t.getAttribute("aria-label") ?? "").filter(Boolean));
++const flaggedUnusual = (page: Page) =>
++  page.evaluate(() => [...document.querySelectorAll("flow-error-tile")].some((e) => /unusual activity/i.test((e as HTMLElement).innerText)));
++
++// The prompt Flow stored for a finished tile: hover -> "Reuse prompt" puts it in the composer (mapped live
++// 2026-11-06 on video tiles: hover buttons Favorite | Reuse prompt | More options).
++async function storedPrompt(page: Page, id: string): Promise<string> {
++  await scrollToTop(page);
++  const tile = mediaTile(page, id);
++  await hoverTile(page, tile, 500);
++  await tile.getByRole("button", { name: "Reuse prompt" }).click({ timeout: 5000 });
++  await pause(page, 1000);
++  return page.locator(".ProseMirror").first().innerText();
++}
++
++async function clearComposer(page: Page): Promise<void> {
++  const clear = page.getByRole("button", { name: "Clear prompt" });
++  if (await clear.isVisible().catch(() => false)) await clear.click().catch(() => {});
++  await pause(page, 400);
++}
++
++// owner[tile] = index of the job whose prompt it holds, or -1. Scenes of one film share most of their text (tone,
++// identity lines), so only the words that appear in ONE job's prompt count. A tile goes to the job with the highest
++// share of its own words found; ties or weak matches (< 60 %) stay unassigned rather than guessed.
++export function assignByPrompt(jobPrompts: string[], tilePrompts: (string | undefined)[], capacity: number[]): number[] {
++  const bags = jobPrompts.map(words);
++  const own = bags.map((b, i) => new Set([...b].filter((w) => !bags.some((o, k) => k !== i && o.has(w)))));
++  const owner = tilePrompts.map(() => -1);
++  const left = [...capacity];
++  const pairs: { tile: number; job: number; score: number }[] = [];
++  tilePrompts.forEach((tp, tile) => {
++    if (!tp) return;
++    const have = words(tp);
++    own.forEach((set, job) => {
++      // identical prompts (two takes of one scene in one batch) have no own words: match them on all their words
++      const want = set.size ? set : bags[job];
++      const hit = [...want].filter((w) => have.has(w)).length;
++      pairs.push({ tile, job, score: want.size ? hit / want.size : 0 });
++    });
++  });
++  pairs.sort((a, b) => b.score - a.score);
++  for (const { tile, job, score } of pairs) {
++    if (score < 0.6 || owner[tile] >= 0 || left[job] <= 0) continue;
++    const rival = pairs.find((p) => p.tile === tile && p.job !== job && left[p.job] > 0 && own[p.job].size && own[job].size);
++    if (rival && rival.score === score) continue;
++    owner[tile] = job;
++    left[job]--;
++  }
++  return owner;
++}
++
++// Parallel batch: submits every job back to back (Flow renders them at the same time), then waits once for all of
++// them. Flow lists new tiles newest first, so the tiles read bottom-up follow the submit order, `variants` per job.
++// Matching by position (not by prompt or title) is used because Flow retitles tiles while they render.
++export async function runParallel(jobs: Job[]): Promise<Map<string, { files?: string[]; error?: string; credits?: number }>> {
++  const results = new Map<string, { files?: string[]; error?: string; credits?: number }>();
++  const state = await getFlowState();
++  if (!state.signedIn || !state.inProject) throw new Error(state.hint);
++  const page = await getFlowPage();
++  await ensureProjectGrid(page);
++  await ensureGridView(page);
++  await scrollToTop(page);
++  const known = await mediaIds(page);
++  const knownLabels = await gridLabels(page);
++  const submitted: Job[] = [];
++  let made = 0; // tiles this batch has really produced so far
++  let stopReason = "";
++  for (const job of jobs) {
++    if (stopReason) { results.set(job.id, { error: stopReason, credits: 0 }); continue; }
++    try {
++      await submitGeneration(page, job);
++      // Each job must put its own tile(s) in the grid before the next submit. Matching is by position, so a prompt
++      // that Flow drops without a tile (seen live: a refused prompt left no tile and no charge) would otherwise shift
++      // every later clip onto the wrong scene.
++      const n = job.params.variants ?? 1;
++      let appeared = false;
++      for (let t = 0; t < 15; t++) {
++        await pause(page, 3000);
++        if ((await batchTiles(page, known, knownLabels)).length >= made + n) { appeared = true; break; }
++      }
++      if (await flaggedUnusual(page)) {
++        stopReason = "Not submitted: Flow said \"We noticed some unusual activity\". Wait at least 30 minutes before generating again.";
++        results.set(job.id, { error: "Flow refused this generation: \"We noticed some unusual activity\". Wait at least 30 minutes; do not retry right away.", credits: 0 });
++        if (appeared) made += n;
++        continue;
++      }
++      if (!appeared) {
++        results.set(job.id, { error: "Flow made no tile for this prompt (refused before rendering, not charged). Rephrase it - usually violence or injury wording - and retake this scene.", credits: 0 });
++        continue;
++      }
++      made += n;
++      results.set(job.id, { credits: job.credits });
++      submitted.push(job);
++      job.progress = "submitted, rendering with the rest of the batch";
++      // Human pace between submits. 2.5 s apart made Flow answer "We noticed some unusual activity" on the 3rd job
++      // (live, 2026-11-05). Renders still overlap, so the batch is faster than one job at a time without rushing Flow.
++      if (job !== jobs[jobs.length - 1]) await pause(page, SUBMIT_GAP_MIN_MS + Math.random() * (SUBMIT_GAP_MAX_MS - SUBMIT_GAP_MIN_MS));
++    } catch (err) {
++      results.set(job.id, { error: err instanceof Error ? err.message : String(err), credits: 0 });
++    }
++  }
++  if (!submitted.length) return results;
++  const expected = made;
++  const timeout = submitted.some((j) => j.params.type === "video") ? VIDEO_TIMEOUT_MS : IMAGE_TIMEOUT_MS;
++  const deadline = Date.now() + timeout + submitted.length * 20_000;
++  let tiles: Awaited<ReturnType<typeof batchTiles>> = [];
++  let settled = "";
++  for (;;) {
++    await pause(page, 3000);
++    tiles = await batchTiles(page, known, knownLabels);
++    // Only the newest `expected` tiles are this batch. Video tiles at rest are keyed by a signed URL that can change,
++    // so older tiles may not match `known` and slip into the list: counting them made a 3-clip batch read "15/3
++    // finished" and stop while the last clip was still rendering (live 2026-11-06, clip lost: "menu offered: Delete").
++    const top = tiles.slice(0, expected);
++    const done = top.filter((t) => !t.busy).length;
++    for (const j of submitted) j.progress = `batch: ${done}/${expected} finished`;
++    if (top.length >= expected && done >= expected) {
++      const key = tiles.map((t) => t.id ?? "?").join("|");
++      if (key === settled) break; // same ids twice running: Flow has stopped retitling
++      settled = key;
++      continue;
++    }
++    if (Date.now() > deadline) {
++      for (const j of submitted) results.set(j.id, { error: `Timed out: ${done}/${expected} results finished in the batch.` });
++      return results;
++    }
++  }
++  if (tiles.length > expected) {
++    // More new tiles than this batch made: someone else used the project meanwhile. Saving by position could
++    // give a scene the wrong clip, so stop and say so.
++    for (const j of submitted) results.set(j.id, { error: `The grid shows ${tiles.length} new tiles but this batch made ${expected}; something else generated in the project meanwhile. Nothing was saved - download the clips by title (flow_download).`, credits: j.credits });
++    return results;
++  }
++  // Which clip belongs to which job is read from the prompt Flow stored on each tile ("Reuse prompt"). The grid is
++  // NOT reliably in submit order: live 2026-11-06 a 2-scene batch came back with the clips swapped, so scene 1 was
++  // saved with scene 2's action. Position is only a last resort for tiles whose prompt cannot be read (failed tiles).
++  const batch = tiles.slice(0, expected);
++  const stored: (string | undefined)[] = [];
++  for (const [i, t] of batch.entries()) {
++    for (const j of submitted) j.progress = `reading the prompt of result ${i + 1} of ${batch.length}`;
++    stored.push(t.error || !t.id ? undefined : await storedPrompt(page, t.id).catch(() => undefined));
++  }
++  await clearComposer(page);
++  const owner = assignByPrompt(submitted.map((j) => j.params.prompt), stored, submitted.map((j) => j.params.variants ?? 1));
++  for (const [ti, t] of batch.entries()) if (!t.error && t.id && owner[ti] < 0) {
++    for (const j of submitted) results.set(j.id, { error: "Could not tell which new clip belongs to which scene (stored prompts did not match). Nothing was saved; download by title with flow_download.", credits: j.credits });
++    return results;
++  }
++  const ordered = [...batch].reverse(); // oldest first: only used for tiles without a readable prompt
++  for (const [si, job] of submitted.entries()) {
++    const n = job.params.variants ?? 1;
++    let mine = batch.filter((_, ti) => owner[ti] === si);
++    if (mine.length < n) {
++      const spare = ordered.filter((t) => (t.error || !t.id) && owner[batch.indexOf(t)] < 0);
++      for (const t of spare.slice(0, n - mine.length)) { mine.push(t); owner[batch.indexOf(t)] = si; }
++    }
++    job.progress = undefined;
++    if (mine.some((t) => t.error || !t.id)) {
++      const flagged = await flaggedUnusual(page);
++      results.set(job.id, { error: flagged
++        ? "Flow refused this generation: \"We noticed some unusual activity\". Stop generating for a while; do not retry right away."
++        : "Flow failed this generation in the batch (not charged); retake it.", credits: 0 });
++      continue;
++    }
++    try {
++      const files = await saveResults(page, job, mine.map((t) => t.id!));
++      results.set(job.id, { files, credits: job.credits });
++    } catch (err) {
++      results.set(job.id, { error: err instanceof Error ? err.message : String(err), credits: job.credits });
++    }
++  }
++  return results;
++}
++
+ export interface FlowAsset {
+   name: string;
+   kind: "image" | "video" | "scene";
+@@ -949,7 +1219,7 @@ async function savePortrait(page: Page, name: string): Promise<string> {
+ // Opens an existing character and restyles its portrait in place (Nano Banana, free) instead of making a new one.
+ // Without a change it only saves the character's current portrait: for a look changed by hand in Flow, or an edit whose
+ // portrait never reached disk.
+-export async function editCharacter(name: string, change?: string, job?: Job): Promise<{ name: string; portrait?: string; note?: string }> {
++export async function editCharacter(name: string, change?: string, job?: Job, renameTo?: string): Promise<{ name: string; portrait?: string; note?: string }> {
+   const state = await getFlowState();
+   if (!state.signedIn || !state.inProject) throw new Error(state.hint);
+   const page = await getFlowPage();
+@@ -958,13 +1228,27 @@ export async function editCharacter(name: string, change?: string, job?: Job): P
+   await openProjectNav(page, "Characters");
+   await pause(page, 2500);
+ 
+-  const card = page.locator("flow-character-tile").filter({ hasText: name }).first();
++  // Exact name: a tile's text is "<name> accessibility_new", and hasText alone made "Sam" also match "Sam-old".
++  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
++  // textContent is the name followed by icon ligatures, e.g. "Samaccessibility_newfavoritemore_vert" (2026-11-06).
++  const exact = new RegExp(`^\\s*${escaped}\\s*(accessibility_new|favorite|more_vert|person|\\s)*$`);
++  const card = page.locator("flow-character-tile").filter({ hasText: exact }).first();
+   if (!(await card.isVisible().catch(() => false))) throw new Error(`No character called "${name}". Use flow_characters to list them.`);
+   await card.scrollIntoViewIfNeeded();
+   await card.click();
+   await page.waitForURL(/\/character\/[0-9a-f-]{36}/, { timeout: 20_000 });
+   await pause(page, 2000);
+ 
++  if (renameTo) {
++    // Same textbox the new-character flow fills (mapped 2026-09-20); Enter commits it.
++    const box = page.getByRole("textbox", { name: "Character name" });
++    await box.waitFor({ state: "visible", timeout: 15_000 });
++    await box.fill(renameTo);
++    await box.press("Enter");
++    await pause(page, 1500);
++    name = renameTo;
++  }
++
+   if (change) {
+     const portraitImg = page.getByRole("img", { name: "Generated character image" }).first();
+     const before = await portraitImg.getAttribute("src").catch(() => null);
+diff --git a/src/queue.ts b/src/queue.ts
+index ef48c90..2b1110b 100644
+--- a/src/queue.ts
++++ b/src/queue.ts
+@@ -6,7 +6,7 @@ export interface SceneParams {
+   prompt: string;
+   type: "video" | "image";
+   max_credits: number;
+-  duration?: 4 | 6 | 8 | 10;
++  duration?: number;
+   resolution?: "360p" | "720p";
+   model?: string;
+   aspect_ratio?: "16:9" | "9:16" | "1:1" | "4:3" | "3:4";
+@@ -34,6 +34,8 @@ export interface SceneParams {
+   download_quality?: "original" | "upscaled";
+   output_dir: string;
+   file_stem: string;
++  // Jobs with the same parallel_group are submitted to Flow back to back and collected together.
++  parallel_group?: string;
+ }
+ 
+ export interface Job {
+@@ -53,11 +55,16 @@ export interface Job {
+ }
+ 
+ export type JobRunner = (job: Job) => Promise<string[]>;
++export type BatchResult = { files?: string[]; error?: string; credits?: number; note?: string };
++export type BatchRunner = (jobs: Job[]) => Promise<Map<string, BatchResult>>;
+ 
+ // Flow is driven like a careful person would: one generation at a time, with a
+ // randomised pause between them.
+ const PAUSE_MIN_MS = Number(process.env.FLOW_MCP_PAUSE_MIN_S ?? 25) * 1000;
+ const PAUSE_MAX_MS = Number(process.env.FLOW_MCP_PAUSE_MAX_S ?? 70) * 1000;
++// Parallel batches: how many generations are in flight at once, and the pause between two batches.
++const PARALLEL_MAX = Math.max(1, Number(process.env.FLOW_MCP_PARALLEL_MAX ?? 3));
++const BATCH_PAUSE_MS = Number(process.env.FLOW_MCP_BATCH_PAUSE_S ?? 25) * 1000;
+ 
+ export class JobQueue {
+   private jobs = new Map<string, Job>();
+@@ -65,7 +72,7 @@ export class JobQueue {
+   private lastFinished = 0;
+   pausedReason: string | null = null;
+ 
+-  constructor(private runner: JobRunner) {}
++  constructor(private runner: JobRunner, private batchRunner?: BatchRunner) {}
+ 
+   add(params: SceneParams): Job {
+     const job: Job = {
+@@ -117,12 +124,18 @@ export class JobQueue {
+   private async work(): Promise<void> {
+     if (this.working) return;
+     this.working = true;
++    // Let the caller finish queueing the whole call first: add() runs work() for the first scene immediately, and a
++    // parallel group read at that moment held only that scene (scene 1 always ran alone, live test 2026-11-05).
++    await new Promise((r) => setTimeout(r, 0));
+     try {
+       for (;;) {
+         const job = this.list().find((j) => j.status === "queued");
+         if (!job) return;
++        const group = job.params.parallel_group && this.batchRunner
++          ? this.list().filter((j) => j.status === "queued" && j.params.parallel_group === job.params.parallel_group).slice(0, PARALLEL_MAX)
++          : [];
+         if (this.lastFinished) {
+-          const pause = PAUSE_MIN_MS + Math.random() * (PAUSE_MAX_MS - PAUSE_MIN_MS);
++          const pause = group.length > 1 ? BATCH_PAUSE_MS : PAUSE_MIN_MS + Math.random() * (PAUSE_MAX_MS - PAUSE_MIN_MS);
+           const remaining = this.lastFinished + pause - Date.now();
+           if (remaining > 0) {
+             this.pausedReason = `pacing: next generation in ${Math.ceil(remaining / 1000)}s`;
+@@ -131,6 +144,11 @@ export class JobQueue {
+           }
+         }
+         if (job.status !== "queued") continue;
++        if (group.length > 1) {
++          await this.runBatch(group.filter((j) => j.status === "queued"));
++          this.lastFinished = Date.now();
++          continue;
++        }
+         job.status = "running";
+         job.attempts++;
+         try {
+@@ -151,4 +169,32 @@ export class JobQueue {
+       this.working = false;
+     }
+   }
++
++  private async runBatch(jobs: Job[]): Promise<void> {
++    for (const j of jobs) {
++      j.status = "running";
++      j.attempts++;
++    }
++    let results: Map<string, BatchResult>;
++    try {
++      results = await this.batchRunner!(jobs);
++    } catch (err) {
++      const msg = err instanceof Error ? err.message : String(err);
++      results = new Map(jobs.map((j) => [j.id, { error: msg }]));
++    }
++    for (const j of jobs) {
++      const r = results.get(j.id) ?? { error: "no result from the parallel batch" };
++      if (r.credits !== undefined) j.credits = r.credits;
++      if (r.note) j.note = [j.note, r.note].filter(Boolean).join(" · ");
++      if (r.files && !r.error) {
++        j.files = r.files;
++        j.status = "done";
++        j.error = undefined;
++      } else {
++        j.error = r.error;
++        j.status = "failed";
++      }
++      j.finishedAt = new Date().toISOString();
++    }
++  }
+ }

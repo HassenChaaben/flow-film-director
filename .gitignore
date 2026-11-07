@@ -14,3 +14,7 @@ prompts/
 .DS_Store
 Thumbs.db
 .superpowers/
+*.egg-info/
+dist/
+build/
+

@@ -31,8 +31,11 @@
   <a href="#-creator-production-playbook--prompt-recipes"><b>📘 Creator Playbook</b></a>
 </p>
 
-> [!NOTE]
-> 📢 **Pro Studio Marketplace Notice:** The **Pro Studio Edition ($4.99)** has been submitted and is currently undergoing official marketplace verification on **[Agensi.io](https://www.agensi.io/skills/flow-film-director)**. If the page displays *Under Review* or is temporarily not found, don't worry — it will be officially live and available on **Agensi** within **2 days**! You can start using the Free Community Edition on GitHub right now.
+> [!TIP]
+> 🚀 **Pro Studio is live on [Agensi](https://www.agensi.io/skills/flow-film-director) - $4.99, one-time.**
+> Stop re-rolling clips and checking faces by eye. Pro measures every keyframe and clip for you: it **scores each face against your real photos**, **matches stunts joint by joint** to your reference video, **locks your product's exact look**, gives every character **their own cloned voice**, and **tells you which scenes to retake**. Less wasted Flow credits on bad takes; one saved retake usually pays for it.
+> Passed Agensi's security review · runs on your own computer · your photos and voices never go to our servers.
+> **[👉 Get Pro Studio on Agensi](https://www.agensi.io/skills/flow-film-director)** - or keep using the free Community Edition below.
 
 ---
 
@@ -142,7 +145,7 @@ Flow Film Director is distributed under a transparent **Open Core** model:
   <a href="https://www.agensi.io/skills/flow-film-director">
     <img src="https://img.shields.io/badge/🚀%20Get%20Pro%20Studio%20on%20Agensi-Instant%20Access%20($4.99)-6366F1?style=for-the-badge&logo=sparkles&logoColor=white" alt="Upgrade to Pro Studio on Agensi" />
   </a><br/>
-  <sub>⏳ <i>Listing submitted and completing review — if temporarily not found, it will be live on Agensi within 2 days!</i></sub>
+  <sub>✅ <i>Security-reviewed & live on the Agensi Marketplace</i></sub>
 </p>
 
 ---
@@ -198,7 +201,7 @@ flowchart LR
 | **Identity Lock (SFace & YuNet)** | Crops, cleans, and measures face embeddings across angles | Subject remains identical across every take ($\ge 0.50$ similarity). |
 | **0-Credit Keyframe Gating** | Generates Nano Banana stills first before triggering paid video | Validates framing and identity for 0 credits before spending Flow budget. |
 | **Shot-by-Shot Stunt Remakes** | MediaPipe Pose extracts joint angles from reference videos | Matches camera framing, duration, and choreography beat for beat ($\ge 0.70$). |
-| **Quad-Engine Voice Suite** | Jamie Pine's Voicebox (Default Free), ElevenLabs, RVC, Local | Free local voice studio & cloud generation across 23+ languages with automatic ducking. |
+| **Tri-Engine Local Voice Suite** | Jamie Pine's Voicebox (Default Free), RVC, Local Chatterbox | Free voice cloning that never leaves your computer, with automatic ducking. |
 | **Programmatic Video Editing** | Remotion React timeline & Chromium headless renderer | Replaces desktop editors; builds kinetic captions, lower-thirds, and transitions. |
 
 ---
@@ -523,16 +526,15 @@ Photorealistic, physically plausible human weight, no rubber limbs, no face morp
 
 ## 🎙️ Quad-Engine Voice Suite & Voicebox Integration
 
-Flow Film Director features a studio-grade **Quad-Engine Voice Architecture**, combining local neural synthesis, cloud voice laboratories, and speech-to-speech transfer:
+Flow Film Director features a **Tri-Engine Local Voice Architecture**: local neural synthesis and speech-to-speech transfer. No voice audio is sent to a cloud service:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                QUAD-ENGINE VOICE STACK                                 │
+│                              TRI-ENGINE LOCAL VOICE STACK                              │
 ├─────────────────────┬──────────────────────────────────────────────────────────────────┤
-│ 1. Voicebox (Local) │ 100% Free, local open-source voice studio at http://127.0.0.1    │
-│ 2. ElevenLabs       │ Broadcast-grade cloud synthesis for Arabic, French, and English  │
-│ 3. Local RVC        │ Speech-to-Speech transfer: converts acting to character timbre   │
-│ 4. Local Zero-Shot  │ Offline PyTorch CUDA text-to-speech with Perth watermarking      │
+│ 1. Voicebox (Local) │ 100% Free, local open-source voice studio on this computer       │
+│ 2. Local RVC        │ Speech-to-Speech transfer: converts acting to character timbre   │
+│ 3. Local Zero-Shot  │ Offline PyTorch CUDA text-to-speech with Perth watermarking      │
 └─────────────────────┴──────────────────────────────────────────────────────────────────┘
 ```
 

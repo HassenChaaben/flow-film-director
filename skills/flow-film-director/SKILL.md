@@ -1,32 +1,17 @@
 ---
 name: flow-film-director
 description: Direct any kind of video in Google Flow (flow MCP) with consistent, accurate subjects - short films, shot-for-shot remakes of a reference video, talking heads, product ads, explainers, social reels, music videos, place tours, animated or stylised films, animated photos, event recaps. People keep the SAME face, products and places stay identical, actions look real. Use whenever the user wants a video, film, reel or ad made with Flow, wants to copy a reference video with their own people, or complains that Flow changes faces, loses details or makes fake or funny actions ('keep my exact face', 'same characters', 'same actions as this video', 'a product ad', 'animate this photo'). Deterministic gated pipeline - required idea or reference video, intent profile, cleaned references, measured face/object/motion checks, storyboard.json compiled into exact prompts, verified keyframes, measured review of every clip, assembly and final watch.
+version: 1.3.0
 declared-hosts:
-  - 127.0.0.1
-  - api.elevenlabs.io
-  - download.pytorch.org
-  - github.com
+  - labs.google         # Google Flow, through the user's own signed-in browser session (flow MCP)
+  - 127.0.0.1           # local Voicebox app on this computer (loopback only, enforced in code)
+  - pypi.org            # pip packages, one-time setup only
+  - files.pythonhosted.org
+  - github.com          # OpenCV Zoo public face models, one-time setup only
   - raw.githubusercontent.com
-  - mcp.videodb.io
-  - storage.googleapis.com
-allowed-hosts:
-  - 127.0.0.1
-  - api.elevenlabs.io
-  - download.pytorch.org
-  - github.com
-  - raw.githubusercontent.com
-  - mcp.videodb.io
-  - storage.googleapis.com
-env_vars:
-  - ELEVENLABS_API_KEY
-  - VOICEBOX_URL
-  - FLOW_FILM_HOME
-  - FLOW_FILM_MODELS
-env-vars:
-  - ELEVENLABS_API_KEY
-  - VOICEBOX_URL
-  - FLOW_FILM_HOME
-  - FLOW_FILM_MODELS
+  - storage.googleapis.com  # Google MediaPipe public pose model, one-time setup only
+  - huggingface.co      # Chatterbox public voice weights, downloaded by the library on first local use
+env-vars: []
 ---
 
 # Flow Film Director
@@ -261,7 +246,7 @@ For EACH take:
 
 ## Phase 7 - Assemble and final watch
 1. Speech: `flow_transcribe` -> user confirms the words. Narration: a recorded file, `flow_narrate`, or a character's
-   own voice with `voice_convert.py speak` (defaults to Voicebox engine unless ElevenLabs is explicitly requested).
+   own voice with `voice_convert.py speak` (Voicebox engine by default; every voice engine runs on this computer).
 2. `"%PY%" assemble.py film/<slug>/storyboard.json --out film/<slug>/final/film-v1.mp4` - uses each scene's
    `accepted.clip_voiced`/`accepted.clip` and `trim`, the `audio` block (soundtrack path, start, fades, beat-snapped
    cuts, ducking, voice-over), -14 LUFS two-pass. Read its report (duration, BPM, cut moves, loudness).
@@ -283,18 +268,23 @@ The user names a time ("0:12-0:15 the hand is wrong", "cut 0:20-0:23", "add the 
 
 ## Security & Network Access Disclosures
 
-Flow Film Director runs locally by default. Outbound network communication is strictly scoped to standard open-source models or explicit user opt-in features:
+Flow Film Director reads no API keys, tokens or custom environment variables and stores no secrets. The user's
+reference photos and prompts go only to Google Flow (the video generator the user is already signed in to);
+voice recordings never leave the computer. Every outbound connection is listed here:
 
-| Endpoint / Host | Protocol | Direction | Purpose | Trigger & Privacy Guard |
-|---|---|---|---|---|
-| 127.0.0.1:17493 | HTTP | Local loopback | Local Jamie Pine Voicebox speech server | On-device voice cloning & synthesis (100% private, free, default). |
-| github.com & raw.githubusercontent.com | HTTPS | Inbound download | OpenCV YuNet & SFace ONNX models | One-time fetch of standard public open-source weights to ~/.flow-film/models/. |
-| storage.googleapis.com | HTTPS | Inbound download | Google MediaPipe Pose Landmarker model | One-time fetch of official MediaPipe float16 task weights in motionkit.py. |
-| download.pytorch.org | HTTPS | Inbound download | PyTorch official binary wheels | One-time pip install of official PyTorch wheels for local Kokoro/Whisper environment in setup_voice_env.py. |
-| api.elevenlabs.io | HTTPS | Outbound API | Optional ElevenLabs voice cloning | **Strictly opt-in**: Only used when user supplies ELEVENLABS_API_KEY and requests --engine elevenlabs. Never invoked automatically. |
-| mcp.videodb.io | HTTPS | MCP Transport | Optional VideoDB cloud indexing | **Strictly opt-in**: Optional external cloud MCP server; requires explicit user permission per video upload. |
+| Host | When | Why | What is sent |
+|---|---|---|---|
+| labs.google (Google Flow) | generation phases, through the flow MCP | make keyframes and clips in the user's own Flow project | prompts, and the cleaned reference images / keyframes the user approved |
+| 127.0.0.1 (port 17493, configurable in ~/.flow-film/voicebox.json) | voice steps | the user's own Voicebox desktop app on the same computer | voice samples and text, never leaving the machine; the host is fixed in code and system proxies are ignored |
+| pypi.org, files.pythonhosted.org | `setup_env.py`, `setup_voice_env.py`, once | install pinned Python packages into ~/.flow-film venvs | nothing (download only) |
+| github.com, raw.githubusercontent.com | `setup_env.py`, once | OpenCV Zoo YuNet + SFace face models into ~/.flow-film/models | nothing (download only) |
+| storage.googleapis.com | `setup_env.py`, once | Google MediaPipe pose model into ~/.flow-film/models | nothing (download only) |
+| huggingface.co | first use of the local Chatterbox engine | public Chatterbox voice weights (the library's own download) | nothing (download only) |
 
-All video generation, prompt compilation, frame extraction, face alignment, and timeline assembly execute entirely on the user's local machine and through the user's authenticated Google Flow MCP session.
+`setup_env.py` is the only skill script that opens a URL itself, and it reads no user files. All analysis scripts
+(face, object, motion, review, assembly, editing) work offline. Video generation goes through the user's own,
+already signed-in Google Flow MCP session. Shell commands run without a shell (argument lists only: ffmpeg, git,
+`npm run build` of the user's local flow-mcp checkout after `patch_flow_mcp.py` applies its patch).
 
 ## Hard rules
 - No phase starts before the previous gate passes. No idea or reference video -> no work.
@@ -308,6 +298,6 @@ All video generation, prompt compilation, frame extraction, face alignment, and 
   action + one camera move per scene. Never ask Flow to draw readable text, logos or prices: add them in post.
 - Never send an uncleaned reference (screenshot UI, captions, other people) to Flow.
 - Voices: only people who agreed; never a public figure. Soundtrack mode needs the user's file path - never invent music.
-- VideoDB or any cloud tool: only with the user's yes for that upload (references/videodb.md).
+- VideoDB or any other cloud tool is not part of this skill: use it only if the user installed it and said yes to that upload (references/videodb.md).
 - If the user says the result looks wrong, believe them, find the gate that let it through, tighten that gate.
 - Explain in simple English (B1-B2); short status lines: phase, scene, take, scores.

@@ -28,7 +28,7 @@ A complete working example: `examples/storyboard.example.json` in the repository
     "target_lufs": -14,
     "allow_clip_music": false                // false: every clip prompt says "No music in the clip."
   },
-  "differences": "Sam is the taller one with tight dark curls and a short beard; Lina has straight shoulder-length hair.",
+  "differences": "Sam is the taller one with tight dark ringlets and a short beard; Lina has straight shoulder-length hair.",
   "cast": {                                  // everything that must look the same in every shot
     "Sam":    {"kind": "person",  "ref": "asset:Sam",  "lock_file": "bible/Sam.lock.txt",  "outfit": "plain white shirt, beige trousers",
                "voice": "voices/Sam/profile.json",    // optional: speaks with his real voice (voice_profile.py create)
@@ -92,7 +92,7 @@ Rules the builder enforces (it exits 1 and lists every error):
 - the look flow-mcp stores for each character (~/.flow-mcp/characters.json, appended to every scene) must equal the
   bible lock word for word and pass the word checks; no cast name may be a prefix of another, and `flow_project` may
   not start with a cast name (Flow could attach a tile instead of the character);
-- curly/wavy hair in a person's lock needs a length in cm; "profile"/"side view" in any start/end/beat text is refused
+- textured (wavy, coily, ringlet) hair in a person's lock needs a length in cm; "profile"/"side view" in any start/end/beat text is refused
   unless `allow_profile` (three-quarter wording is fine);
 - every name in `characters` / `subjects` exists in `cast` with the right kind; every lock file and path exists;
 - products, objects and places have a photo `ref`; stylized mode has a `style`;

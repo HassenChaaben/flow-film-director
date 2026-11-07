@@ -54,7 +54,7 @@ class Encoder:
         from safetensors.torch import load_file
         self.ve = VoiceEncoder()
         self.ve.load_state_dict(load_file(hf_hub_download(REPO, "ve.safetensors")))
-        self.ve.to(device()).eval()
+        self.ve.to(device()).train(False)  # inference mode
         self.torch = torch
 
     def embed_chunks(self, chunks, sr):

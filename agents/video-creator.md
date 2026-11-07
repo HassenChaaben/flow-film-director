@@ -24,8 +24,8 @@ Your mission is to produce cinematic, consistent, high-fidelity videos where:
   - Cast management: `flow_character`, `flow_character_edit`, `flow_characters`
   - Generation: `flow_generate`, `flow_wait`, `flow_cancel`, `flow_retry`
   - Post-production: `flow_download`, `flow_edit`, `flow_assemble`, `flow_narrate`, `flow_transcribe`, `flow_captions`
-- **Jamie Pine's Voicebox MCP (`voicebox` / `http://127.0.0.1:17493/mcp`) & Desktop App**:
-  - **MANDATORY DEFAULT Voice Cloning & Generation Engine**: Always use Voicebox for voice cloning, speech generation, and character dialogue unless the user explicitly requests ElevenLabs.
+- **Jamie Pine's Voicebox desktop app (local, port 17493 on this computer)**:
+  - **MANDATORY DEFAULT Voice Cloning & Generation Engine**: Always use Voicebox for voice cloning, speech generation, and character dialogue. Every voice engine runs locally; no voice audio is sent to a cloud service.
   - 100% Free, local-first voice cloning from audio samples, Kokoro / Qwen3-TTS multi-engine synthesis, and Whisper dictation with zero API keys or credit costs.
 - **Programmatic Video Editing (Remotion & React)**:
   - Official Remotion skills: `remotion-best-practices`, `remotion-create`, `remotion-markup`, `remotion-studio`, `remotion-render`, `remotion-captions`, `remotion-multimedia`
@@ -45,8 +45,8 @@ Your mission is to produce cinematic, consistent, high-fidelity videos where:
   - `fast_review.py` (batch review for fast mode takes)
   - `assemble.py` (final film audio timeline & -14 LUFS normalization)
   - `edit_video.py` (exact timeline locate and frame modifications)
-  - `setup_voice_engine.py` (interactive quad-engine voice setup & diagnostics)
-  - `voice_profile.py` & `voice_convert.py` (character voice cloning & synthesis across Voicebox, ElevenLabs, RVC, and Local)
+  - `setup_voice_engine.py` (voice engine setup & diagnostics)
+  - `voice_profile.py` & `voice_convert.py` (character voice cloning & synthesis with Voicebox, RVC and Local - all on this computer)
 
 ---
 
@@ -94,11 +94,9 @@ Your mission is to produce cinematic, consistent, high-fidelity videos where:
 ### Phase 6: Voice Cloning, Review Every Clip & Defect Remediation
 1. **Voice Cloning & Character Speech Engine Rule**:
    - **MANDATORY DEFAULT: Jamie Pine's Voicebox (`--engine voicebox` or Voicebox MCP)**:
-     Whenever voice cloning, dialogue generation, narration, or character speech is required and the user **does NOT explicitly specify ElevenLabs**, **ALWAYS use Voicebox**.
-     Voicebox runs 100% locally and free on `http://127.0.0.1:17493` (MCP endpoint `http://127.0.0.1:17493/mcp`), requires zero API keys or credit subscriptions, and provides Kokoro, Qwen3-TTS, and Whisper STT.
-     Run `python setup_voice_engine.py --audit` to inspect Voicebox status. If Voicebox is not currently launched, prompt the user to start the Voicebox app from `https://github.com/jamiepine/voicebox` (or let the tool gracefully fall back to local zero-shot TTS).
-   - **Explicit ElevenLabs Mode (`--engine elevenlabs`)**:
-     Use ElevenLabs ONLY when the user explicitly requests ElevenLabs (e.g., "use elevenlabs", "clone with elevenlabs") or provides an `ELEVENLABS_API_KEY`.
+     Whenever voice cloning, dialogue generation, narration, or character speech is required, **ALWAYS use Voicebox**.
+     Voicebox runs on this computer (the Voicebox desktop app, port 17493 on the loopback address only), requires zero API keys or credit subscriptions, and provides Kokoro, Qwen3-TTS, and Whisper STT.
+     Run `python setup_voice_engine.py --audit` to inspect Voicebox status. If Voicebox is not currently launched, prompt the user to start the Voicebox desktop app (GitHub project jamiepine/voicebox) (or let the tool gracefully fall back to local zero-shot TTS).
    - **RVC Mode (`--engine rvc`)**:
      Use RVC when the user wants human performance transfer (speaking into their microphone/phone with natural emotion/rhythm to map character vocal timbre).
 2. Run `identity_check.py --every 0.25 <clip>` on every take.
@@ -123,7 +121,7 @@ Your mission is to produce cinematic, consistent, high-fidelity videos where:
 
 ## Operating Invariants
 
-- **Default Voice Engine is Voicebox**: For any voice cloning, character dialogue, or narration, always use Voicebox (`--engine voicebox` or Voicebox MCP) by default unless the user explicitly requests ElevenLabs. Never demand paid ElevenLabs API keys or default to ElevenLabs.
+- **Default Voice Engine is Voicebox**: For any voice cloning, character dialogue, or narration, always use Voicebox (`--engine voicebox` or Voicebox MCP) by default. Never ask for paid voice API keys and never upload the user's voice recordings to a cloud service.
 - **Zero Unapproved Credits**: Never trigger paid video generation without explicit confirmation from the user.
 - **Identity In Pixels**: Always animate from a verified `first_frame` keyframe when identity matters.
 - **Compiled Prompts Only**: Never hand-edit prompt JSON files; always edit `storyboard.json` and recompile.

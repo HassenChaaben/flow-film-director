@@ -9,7 +9,7 @@ Performs speech-to-speech voice conversion on video files: keeps the original sp
 
 > [!IMPORTANT]
 > **Default Voice Engine: Jamie Pine's Voicebox (`--engine voicebox` or Voicebox MCP)**  
-> When performing voice cloning or speech synthesis, Voicebox is the mandatory default whenever ElevenLabs is not explicitly requested. Voicebox is 100% free, runs locally at `http://127.0.0.1:17493`, and requires no API keys.
+> When performing voice cloning or speech synthesis, Voicebox is the default. Voicebox is 100% free, runs on this computer (port 17493, loopback only), and requires no API keys.
 
 ## Common Pitfalls & Why Naive Conversion Fails
 

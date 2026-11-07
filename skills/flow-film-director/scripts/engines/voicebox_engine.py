@@ -1,26 +1,46 @@
 """Voicebox Engine for Flow Film Director.
 
-Integrates with Jamie Pine's Voicebox (https://github.com/jamiepine/voicebox):
-- 100% Free, local-first AI voice studio desktop application
-- Zero-shot Voice Cloning from audio samples
-- Multi-engine local synthesis (Kokoro, Qwen3-TTS, Chatterbox, HumeAI TADA)
-- Built-in MCP Server (http://127.0.0.1:17493/mcp) and REST API (http://127.0.0.1:17493)
+Talks to Jamie Pine's Voicebox (the free, open-source "voicebox" desktop app by jamiepine on GitHub) running on
+THIS computer:
+- zero-shot voice cloning from audio samples, local text-to-speech (Kokoro, Qwen3-TTS, Chatterbox), Whisper STT
+- REST API on the loopback address only. The host is fixed to 127.0.0.1 (only the port can change, through
+  ~/.flow-film/voicebox.json {"port": 17493}), so audio never leaves the machine.
 """
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 import subprocess
-import sys
+
 import requests
 
-DEFAULT_VOICEBOX_URL = "http://127.0.0.1:17493"
+LOOPBACK = "127.0.0.1"
+DEFAULT_PORT = 17493
+CONFIG = Path.home() / ".flow-film" / "voicebox.json"
+# trust_env=False: never route loopback traffic through a system HTTP proxy, so audio stays on this computer.
+HTTP = requests.Session()
+HTTP.trust_env = False
+
+
+def get_port() -> int:
+    try:
+        port = int(json.loads(CONFIG.read_text(encoding="utf-8")).get("port", DEFAULT_PORT))
+    except (OSError, ValueError, AttributeError):
+        port = DEFAULT_PORT
+    if not 1 <= port <= 65535:
+        raise ValueError(f"bad Voicebox port {port} in {CONFIG}")
+    return port
+
+
+def set_port(port: int) -> None:
+    if not 1 <= port <= 65535:
+        raise ValueError(f"bad Voicebox port {port}")
+    CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG.write_text(json.dumps({"port": port}), encoding="utf-8")
 
 
 def get_base_url() -> str:
-    url = os.environ.get("VOICEBOX_URL", DEFAULT_VOICEBOX_URL).rstrip("/")
-    return url
+    return f"http://{LOOPBACK}:{get_port()}"
 
 
 def check_voicebox_ready() -> dict:
@@ -28,7 +48,7 @@ def check_voicebox_ready() -> dict:
     base_url = get_base_url()
     try:
         # Check /profiles or /health or root
-        r = requests.get(f"{base_url}/profiles", timeout=3)
+        r = HTTP.get(f"{base_url}/profiles", timeout=3)
         if r.status_code == 200:
             profiles = r.json() if isinstance(r.json(), list) else r.json().get("profiles", [])
             return {
@@ -41,7 +61,7 @@ def check_voicebox_ready() -> dict:
     except requests.exceptions.ConnectionError:
         return {
             "ok": False,
-            "error": f"Voicebox not running at {base_url}. Launch the Voicebox app from https://github.com/jamiepine/voicebox"
+            "error": f"Voicebox not running at {base_url}. Start the Voicebox desktop app on this computer."
         }
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -51,7 +71,7 @@ def list_profiles() -> list[dict]:
     """Retrieve available voice profiles from the local Voicebox app."""
     base_url = get_base_url()
     try:
-        r = requests.get(f"{base_url}/profiles", timeout=5)
+        r = HTTP.get(f"{base_url}/profiles", timeout=5)
         if r.status_code == 200:
             data = r.json()
             return data if isinstance(data, list) else data.get("profiles", [])
@@ -96,7 +116,7 @@ def clone_voice(name: str, sample_paths: list[str | Path], description: str = ""
         }
 
         # Try POST /profiles endpoint
-        r = requests.post(f"{base_url}/profiles", data=data, files=files, timeout=60)
+        r = HTTP.post(f"{base_url}/profiles", data=data, files=files, timeout=60)
         if r.status_code in [200, 201]:
             res = r.json()
             profile_id = res.get("id") or res.get("profile_id") or name
@@ -133,14 +153,14 @@ def speak(
     }
 
     # Voicebox exposes /generate for rendering audio files
-    r = requests.post(
+    r = HTTP.post(
         f"{base_url}/generate",
         json=payload,
         timeout=90
     )
     if r.status_code != 200:
         # Fallback retry to /speak or query parameters if schema differs
-        r = requests.post(
+        r = HTTP.post(
             f"{base_url}/speak",
             json=payload,
             timeout=90
@@ -164,7 +184,7 @@ def transcribe(audio_path: str | Path, model: str = "turbo") -> str:
     src = Path(audio_path)
     with open(src, "rb") as f:
         files = {"audio": (src.name, f, "audio/wav")}
-        r = requests.post(f"{base_url}/transcribe", files=files, data={"model": model}, timeout=60)
+        r = HTTP.post(f"{base_url}/transcribe", files=files, data={"model": model}, timeout=60)
         if r.status_code == 200:
             res = r.json()
             return res.get("text", "")

@@ -377,11 +377,11 @@ def setup_python_environments(with_voices: bool) -> None:
             print(cyan("  Preparing isolated character-voice environment (~/.flow-film/voice-venv, ~3-4 GB) ..."))
             res = subprocess.run([py_bin, str(VOICE_ENV_SCRIPT)])
             if res.returncode == 0:
-                print(green("  ✓ Voice cloning environment ready with PyTorch & CUDA."))
+                print(green("  ✓ Voice cloning environment ready (PyTorch from PyPI)."))
             else:
                 print(red(f"  Warning: setup_voice_env.py exited with code {res.returncode}."))
     else:
-        print(cyan("  Skipping local voice cloning venv (ElevenLabs cloud engine works immediately without GPU models)."))
+        print(cyan("  Skipping local voice cloning venv (Voicebox desktop app still works without it)."))
 
 
 def main() -> int:
@@ -474,9 +474,9 @@ def main() -> int:
             with_voices = True
         else:
             print()
-            print(bold("[4/4] Tri-Engine Voice Cloning Suite:"))
+            print(bold("[4/4] Local Voice Cloning Suite:"))
             print("  Install the local PyTorch / CUDA voice cloning runtime (~3-4 GB)?")
-            print("  (Note: ElevenLabs cloud engine works immediately without local GPU models).")
+            print("  (Note: the Voicebox desktop app works without these local models).")
             with_voices = prompt_yes_no("Install local PyTorch voice models?", default=False)
 
     print()

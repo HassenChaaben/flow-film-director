@@ -10,7 +10,6 @@ Everything here is fixed-rule: same video in -> same numbers and same words out.
 from __future__ import annotations
 
 import sys
-import urllib.request
 import warnings
 from pathlib import Path
 
@@ -20,7 +19,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from facekit import MODEL_DIR, log  # noqa: E402
 
-POSE_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task"
+POSE_MODEL = "pose_landmarker_full.task"  # downloaded once by scripts/setup_env.py
 JOINTS = {  # MediaPipe indices; left/right = the PERSON's left/right
     "nose": 0, "l_shoulder": 11, "r_shoulder": 12, "l_elbow": 13, "r_elbow": 14, "l_wrist": 15, "r_wrist": 16,
     "l_hip": 23, "r_hip": 24, "l_knee": 25, "r_knee": 26, "l_ankle": 27, "r_ankle": 28,
@@ -137,12 +136,10 @@ class PoseTracker:
             log(f"pose disabled (mediapipe not importable: {e}). Run scripts/setup_env.py and use the venv python.")
             return
         self.mp, self.vision = mp, vision
-        p = MODEL_DIR / "pose_landmarker_full.task"
-        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+        p = MODEL_DIR / POSE_MODEL
         if not p.exists():
-            log("downloading pose_landmarker_full.task ...")
-            urllib.request.urlretrieve(POSE_URL, p.with_suffix(".part"))
-            p.with_suffix(".part").replace(p)
+            log(f"pose disabled ({POSE_MODEL} missing in {MODEL_DIR}). Run scripts/setup_env.py once.")
+            return
         self.opts = vision.PoseLandmarkerOptions(
             base_options=mpp.BaseOptions(model_asset_path=str(p)),
             running_mode=vision.RunningMode.IMAGE,  # per-frame detection: VIDEO mode locks onto one person and misses others

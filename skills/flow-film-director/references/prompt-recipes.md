@@ -24,7 +24,7 @@ eyebrows relaxed>. <Name B> is <...>, positioned <left/right of frame, distance 
 Location: <from the background photo: concrete details - walls, furniture, colours>. Time: <late afternoon>,
 light: <warm sun from camera-left through a window, soft fill>. Moment: <the start / end state of the action in one
 sentence>.
-<LOCK A>. <LOCK B>. <Differences sentence: "Sam is the taller one with tight dark curls; Lina has ...">.
+<LOCK A>. <LOCK B>. <Differences sentence: "Sam is the taller one with tight dark ringlets; Lina has ...">.
 <REALISM BLOCK>"
 Rules:
 - Faces at least ~15% of the frame height (prefer medium close-up to medium for dialogue).
@@ -60,8 +60,8 @@ each>. <REALISM BLOCK>"
 ## Subject Likeness Invariants (Glasses, Hair, and Reference Portraits)
 - **Glasses**: describe the glasses of the chosen reference photo exactly - frame shape, rim thickness, colour, material, lens tint (e.g. `grey see-through rounded-square plastic frames, clear lenses`). A generic phrase draws generic glasses: `thin-framed` produced wire frames on a person whose real frames are thick plastic (forensic run, 2026-11-04). Only jargon such as `keyhole`, `goggles` is banned. If the photos disagree (glasses on/off, two different frames), the user chooses ONE before any character is created.
 - **Three-Quarter Frontal Angle**: When identity matters, never frame subjects in a pure 90° side profile wide shot. Always use a 3/4 frontal view (angled 30-45° toward camera) so both eyes, eyebrows, glasses lenses, nose bridge, and jawline are in view with at least 100px face resolution.
-- **True Hair Texture**: Never force a "tight buzz cut flat to head" on someone with naturally curly hair. Keep the person's true hair silhouette: altering hair volume changes skull proportions and destroys face recognition.
-- **Hair**: curly or wavy hair always gets a length in cm, the side length and what stays visible (`tight curls about 3 cm on top, short tapered sides, ears and forehead visible`). `curly` alone produced a 6-10 cm mop. build_prompts.py refuses a curly lock without a length.
+- **True Hair Texture**: Never force a "tight buzz cut flat to head" on someone with naturally textured (wavy or coily) hair. Keep the person's true hair silhouette: altering hair volume changes skull proportions and destroys face recognition.
+- **Hair**: wavy, coily or ringlet hair always gets a length in cm, the side length and what stays visible (`tight ringlets about 3 cm on top, short tapered sides, ears and forehead visible`). The texture word alone produced a 6-10 cm mop. build_prompts.py refuses a textured-hair lock without a length.
 - **Asymmetric marks** (mole, scar, parting): confirm the side on a photo that is NOT a selfie - front cameras mirror.
 - **Reference portrait background**: plain or soft backgrounds are a safe default; a busy tiled background was measured harmless for identity (the tiled portrait self-scores 0.94), so do not discard a sharp frontal photo for that alone.
 

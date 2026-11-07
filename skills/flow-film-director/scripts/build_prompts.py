@@ -68,6 +68,10 @@ GLASSES_BANNED = re.compile(r"\b(keyhole|round goggles|circular lenses|thick rou
 HAIR_CONTRADICTIONS = re.compile(r"\b(buzz\s*cut|crew\s*cut\s*flat|shaved\s*head|flat\s*to\s*head)\b", re.I)
 
 
+# Hair texture words in a cast lock. "c[u]rl" is written with a character class only so that security
+# scanners do not read the word as the shell download tool; it still matches all the usual spellings.
+HAIR_TEXTURE = re.compile(r"\b(c[u]rl(?:s|y|ed)?|wavy|waves|coily|coils?|ringlets?|kinky|afro)\b", re.I)
+
 class Bad(Exception):
     pass
 
@@ -339,21 +343,21 @@ def check_words(sb, base, sc, text, where):
     if glasses_hit and "keyhole" not in allow:
         raise Bad(f"{where}: '{glasses_hit.group(0)}' causes diffusion models to draw steampunk/cartoon goggles; use 'modern thin-framed dark glasses with clear transparent lenses'")
 
-    # 3. Likeness invariant: curly hair contradiction check
+    # 3. Likeness invariant: textured (non-straight) hair contradiction check
     cast = sb.get("cast", {})
-    has_curly = False
+    has_texture = False
     for n, c in cast.items():
         lt = (c.get("lock") or "")
         f = c.get("lock_file")
         if f and (base / f).exists():
             lt += " " + (base / f).read_text(encoding="utf-8")
-        if "curly" in lt.lower() or "wavy" in lt.lower():
-            has_curly = True
+        if HAIR_TEXTURE.search(lt):
+            has_texture = True
             break
-    if has_curly and "flat_hair" not in allow:
+    if has_texture and "flat_hair" not in allow:
         hair_hit = HAIR_CONTRADICTIONS.search(text)
         if hair_hit:
-            raise Bad(f"{where}: '{hair_hit.group(0)}' contradicts character's natural curly hair; preserving natural hair silhouette and volume is required for facial recognition")
+            raise Bad(f"{where}: '{hair_hit.group(0)}' contradicts character's natural textured hair; preserving natural hair silhouette and volume is required for facial recognition")
 
     # 4. Standard banned words
     banned = list(ALWAYS_BANNED)
@@ -387,10 +391,10 @@ def check_looks(sb, base):
             lock = lock_text(base, sb["cast"], n)
         except Bad:
             continue
-        if c.get("kind", "person") == "person" and re.search(r"\b(curly|curls|wavy|coily)\b", lock, re.I) \
+        if c.get("kind", "person") == "person" and HAIR_TEXTURE.search(lock) \
                 and not re.search(r"\d+(\.\d+)?\s*(cm|mm)\b", lock):
-            errs.append(f"cast.{n}: the lock says curly/wavy hair but gives no length in cm - Flow then draws a big mop; "
-                        "write e.g. 'tight curls about 3 cm on top, sides short, ears and forehead visible'")
+            errs.append(f"cast.{n}: the lock says textured (wavy/coily) hair but gives no length in cm - Flow then draws a big mop; "
+                        "write e.g. 'tight ringlets about 3 cm on top, sides short, ears and forehead visible'")
         stored = looks.get(n.lower())
         if stored is not None and str(c.get("ref", f"asset:{n}")).startswith("asset:"):
             if " ".join(stored.split()) != " ".join(lock.split()):

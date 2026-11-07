@@ -25,7 +25,6 @@ PATCH_DIR = Path(__file__).resolve().parent.parent / "flow-mcp-patches"
 
 def find_flow_mcp(hint: str | None = None) -> Path | None:
     cands = [Path(hint)] if hint else []
-    cands += [Path(os.environ["FLOW_MCP_DIR"])] if os.environ.get("FLOW_MCP_DIR") else []
     cands += [Path.cwd() / "flow-mcp", Path.cwd().parent / "flow-mcp", Path.home() / "tools" / "flow-mcp", Path.home() / "flow-mcp"]
     for c in cands:
         if (c / "src" / "flow.ts").exists():
@@ -44,7 +43,7 @@ def main():
     check = "--check" in sys.argv[1:]
     root = find_flow_mcp(args[0] if args else None)
     if not root:
-        print("Could not find flow-mcp. Pass the folder: python patch_flow_mcp.py <path_to_flow_mcp> (or set FLOW_MCP_DIR)")
+        print("Could not find flow-mcp. Pass the folder: python patch_flow_mcp.py <path_to_flow_mcp>")
         sys.exit(1)
     if not shutil.which("git"):
         print("git is needed to apply the patches")

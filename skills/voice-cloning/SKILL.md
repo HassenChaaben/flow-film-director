@@ -1,6 +1,6 @@
 ---
 name: voice-cloning
-description: Create biometric voice profiles from voice notes (WhatsApp, audio clips, voice memos) and generate character speech matching exact timbre, pitch, and accent using Jamie Pine's Voicebox (default) or ElevenLabs / Chatterbox.
+description: Create biometric voice profiles from voice notes (WhatsApp, audio clips, voice memos) and generate character speech matching exact timbre, pitch, and accent using Jamie Pine's Voicebox (default) or local Chatterbox / RVC - all on this computer.
 ---
 
 # Voice Cloning Skill (`voice-cloning`)
@@ -9,7 +9,7 @@ Extracts, cleans, and builds persistent character voice profiles from raw audio 
 
 > [!IMPORTANT]
 > **Default Engine: Jamie Pine's Voicebox (`--engine voicebox` or Voicebox MCP)**  
-> Whenever voice cloning or speech generation is required and the user **does NOT explicitly specify ElevenLabs**, always use Voicebox. Voicebox is 100% free, runs locally at `http://127.0.0.1:17493`, and requires no API keys. Only use ElevenLabs (`--engine elevenlabs`) when explicitly requested.
+> Whenever voice cloning or speech generation is required, always use Voicebox. Voicebox is 100% free, runs on this computer (port 17493, loopback only), and requires no API keys. Every engine is local: no voice audio leaves the machine.
 
 ## When to Use
 - User provides a character's voice note (e.g. WhatsApp `.ogg`, `.mp3`, `.wav`, `.m4a`).
@@ -50,8 +50,6 @@ Check `profile.json`:
 # Default: Voicebox (100% free, local AI voice studio)
 "%VPY%" voice_convert.py speak --engine voicebox --profile "film/<slug>/voices/<CharacterName>/profile.json" --text "<Speech text>" --lang <lang_code> --out "film/<slug>/vo/line-01.wav"
 
-# Optional: ElevenLabs (only if user explicitly requests ElevenLabs)
-"%VPY%" voice_convert.py speak --engine elevenlabs --profile "film/<slug>/voices/<CharacterName>/profile.json" --text "<Speech text>" --out "film/<slug>/vo/line-01.wav"
 ```
 - Supported languages: `ar` (Arabic & dialects), `en` (English), `fr`, `it`, `es`, `de`, `zh`, `ja`, etc.
 - Seed parameter (`--seed <int>`) guarantees reproducible takes.

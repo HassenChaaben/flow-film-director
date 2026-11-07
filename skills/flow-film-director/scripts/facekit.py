@@ -1,32 +1,21 @@
 """Shared face helpers for flow-film-director.
 
 Uses OpenCV's YuNet (detection + 5 landmarks) and SFace (128-d identity embedding).
-Models are downloaded once into ~/.flow-film/models.
+Models live in ~/.flow-film/models; scripts/setup_env.py downloads them once. This file never uses the network.
 SFace cosine similarity: >= 0.363 is OpenCV's "same person" threshold. Real photos of the
 same person usually score 0.55-0.85. Generated frames that "look like a cousin" land around 0.30-0.45.
 """
 from __future__ import annotations
 
 import json
-import os
 import sys
-import urllib.request
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-MODELS = {
-    "yunet": (
-        "face_detection_yunet_2023mar.onnx",
-        "https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx",
-    ),
-    "sface": (
-        "face_recognition_sface_2021dec.onnx",
-        "https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx",
-    ),
-}
-MODEL_DIR = Path(os.environ.get("FLOW_FILM_MODELS", Path.home() / ".flow-film" / "models"))
+MODELS = {"yunet": "face_detection_yunet_2023mar.onnx", "sface": "face_recognition_sface_2021dec.onnx"}
+MODEL_DIR = Path.home() / ".flow-film" / "models"
 SAME_PERSON = 0.363  # OpenCV SFace cosine threshold
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 VIDEO_EXT = {".mp4", ".mov", ".webm", ".mkv", ".avi"}
@@ -37,16 +26,9 @@ def log(*a):
 
 
 def model_path(key: str) -> str:
-    name, url = MODELS[key]
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    p = MODEL_DIR / name
+    p = MODEL_DIR / MODELS[key]
     if not p.exists() or p.stat().st_size < 50_000:
-        log(f"downloading {name} ...")
-        tmp = p.with_suffix(".part")
-        urllib.request.urlretrieve(url, tmp)
-        if tmp.stat().st_size < 50_000:
-            raise RuntimeError(f"download of {name} looks wrong (git-lfs pointer?). Fetch it by hand into {MODEL_DIR}")
-        tmp.replace(p)
+        raise RuntimeError(f"{p.name} is missing in {MODEL_DIR}. Run scripts/setup_env.py once (it downloads the models).")
     return str(p)
 
 

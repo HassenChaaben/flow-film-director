@@ -15,9 +15,9 @@ const args = process.argv.slice(2);
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
 const stageFile = args.find((a) => a.endsWith(".json"));
 if (!stageFile) { console.error("usage: node run_stage.mjs <stage.json> [--flow-mcp DIR] [--project-url URL] [--only 1,3]"); process.exit(2); }
-const candidates = [opt("--flow-mcp"), process.env.FLOW_MCP_DIR, join(homedir(), "flow-mcp"), resolve("flow-mcp"), resolve("..", "flow-mcp")].filter(Boolean);
+const candidates = [opt("--flow-mcp"), join(homedir(), "flow-mcp"), resolve("flow-mcp"), resolve("..", "flow-mcp")].filter(Boolean);
 const fm = candidates.find((d) => existsSync(join(d, "dist", "core.js")));
-if (!fm) { console.error("flow-mcp not found (pass --flow-mcp or set FLOW_MCP_DIR)"); process.exit(2); }
+if (!fm) { console.error("flow-mcp not found (pass --flow-mcp DIR)"); process.exit(2); }
 const { LocalCore } = await import(pathToFileURL(join(fm, "dist", "core.js")).href);
 const { getFlowPage } = await import(pathToFileURL(join(fm, "dist", "chrome.js")).href);
 

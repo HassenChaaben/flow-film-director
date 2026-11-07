@@ -17,7 +17,7 @@ Ask in Phase 1, every time (the answers go in `brief.md` and the `audio` block o
 
 > [!IMPORTANT]
 > **Default Voice Engine: Jamie Pine's Voicebox (`--engine voicebox` or Voicebox MCP)**  
-> Whenever voice cloning, speech synthesis, or character dialogue is generated, **Voicebox is the mandatory default** if the user has not explicitly requested ElevenLabs. Voicebox is 100% free and runs locally on `http://127.0.0.1:17493` with Kokoro / Qwen3-TTS and Whisper STT. ElevenLabs (`--engine elevenlabs`) is used only when explicitly requested.
+> Whenever voice cloning, speech synthesis, or character dialogue is generated, **Voicebox is the default**. Voicebox is free and runs on this computer (the Voicebox desktop app, port 17493 on the loopback address) with Kokoro / Qwen3-TTS and Whisper STT. The other engines (`--engine local` for Chatterbox, `convert --engine rvc`) are local too: no voice audio ever leaves the machine.
 
 1. **Profile** - once per character:
    `"%VPY%" voice_profile.py create --name Sam --samples <files or folders> --out film/<slug>/voices`

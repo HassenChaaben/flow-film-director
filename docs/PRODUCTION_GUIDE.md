@@ -132,16 +132,11 @@ Photorealistic, zero face blending, no limb distortion.
 
 Choose the right engine from the Quad-Engine Voice Suite:
 1. **For 100% Free Local AI Voice Studio (Default)**:
-   Use **Jamie Pine's Voicebox** (runs locally on `http://127.0.0.1:17493`, zero API keys, Kokoro / Qwen3-TTS, Whisper STT):
+   Use **Jamie Pine's Voicebox** (runs on this computer, zero API keys, Kokoro / Qwen3-TTS, Whisper STT):
    ```bash
    python skills/flow-film-director/scripts/voice_convert.py speak --engine voicebox --profile "voices/Character/profile.json" --text "Your line..." --out "vo/line-01.wav"
    ```
-2. **For Broadcast Trilingual Narration (Tunisian Darija, French, English)**:
-   Use **ElevenLabs Multilingual v2**:
-   ```bash
-   python skills/flow-film-director/scripts/voice_convert.py speak --engine elevenlabs --profile "voices/Character/profile.json" --text "Your line..." --out "vo/line-01.wav"
-   ```
-3. **For 100% Free Authentic Human Emotion**:
+2. **For 100% Free Authentic Human Emotion**:
    Record the line naturally on your phone, then transfer character timbre via **RVC**:
    ```bash
    python skills/flow-film-director/scripts/voice_convert.py convert --engine rvc --human-audio "phone_take.m4a" --profile "voices/Character/profile.json" --out "vo/line-01.wav"

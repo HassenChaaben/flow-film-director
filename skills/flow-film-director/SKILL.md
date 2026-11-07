@@ -1,6 +1,32 @@
 ---
 name: flow-film-director
 description: Direct any kind of video in Google Flow (flow MCP) with consistent, accurate subjects - short films, shot-for-shot remakes of a reference video, talking heads, product ads, explainers, social reels, music videos, place tours, animated or stylised films, animated photos, event recaps. People keep the SAME face, products and places stay identical, actions look real. Use whenever the user wants a video, film, reel or ad made with Flow, wants to copy a reference video with their own people, or complains that Flow changes faces, loses details or makes fake or funny actions ('keep my exact face', 'same characters', 'same actions as this video', 'a product ad', 'animate this photo'). Deterministic gated pipeline - required idea or reference video, intent profile, cleaned references, measured face/object/motion checks, storyboard.json compiled into exact prompts, verified keyframes, measured review of every clip, assembly and final watch.
+declared-hosts:
+  - 127.0.0.1
+  - api.elevenlabs.io
+  - download.pytorch.org
+  - github.com
+  - raw.githubusercontent.com
+  - mcp.videodb.io
+  - storage.googleapis.com
+allowed-hosts:
+  - 127.0.0.1
+  - api.elevenlabs.io
+  - download.pytorch.org
+  - github.com
+  - raw.githubusercontent.com
+  - mcp.videodb.io
+  - storage.googleapis.com
+env_vars:
+  - ELEVENLABS_API_KEY
+  - VOICEBOX_URL
+  - FLOW_FILM_HOME
+  - FLOW_FILM_MODELS
+env-vars:
+  - ELEVENLABS_API_KEY
+  - VOICEBOX_URL
+  - FLOW_FILM_HOME
+  - FLOW_FILM_MODELS
 ---
 
 # Flow Film Director
@@ -253,6 +279,22 @@ The user names a time ("0:12-0:15 the hand is wrong", "cut 0:20-0:23", "add the 
    `splice` the same period) - credits only with the user's OK.
 3. `edit_video.py apply --timeline ... --edits edits/vN.json --out final/film-v(N+1).mp4`; check the changed period
    with the identity/object checks and the frames around every boundary; keep every version.
+
+
+## Security & Network Access Disclosures
+
+Flow Film Director runs locally by default. Outbound network communication is strictly scoped to standard open-source models or explicit user opt-in features:
+
+| Endpoint / Host | Protocol | Direction | Purpose | Trigger & Privacy Guard |
+|---|---|---|---|---|
+| 127.0.0.1:17493 | HTTP | Local loopback | Local Jamie Pine Voicebox speech server | On-device voice cloning & synthesis (100% private, free, default). |
+| github.com & raw.githubusercontent.com | HTTPS | Inbound download | OpenCV YuNet & SFace ONNX models | One-time fetch of standard public open-source weights to ~/.flow-film/models/. |
+| storage.googleapis.com | HTTPS | Inbound download | Google MediaPipe Pose Landmarker model | One-time fetch of official MediaPipe float16 task weights in motionkit.py. |
+| download.pytorch.org | HTTPS | Inbound download | PyTorch official binary wheels | One-time pip install of official PyTorch wheels for local Kokoro/Whisper environment in setup_voice_env.py. |
+| api.elevenlabs.io | HTTPS | Outbound API | Optional ElevenLabs voice cloning | **Strictly opt-in**: Only used when user supplies ELEVENLABS_API_KEY and requests --engine elevenlabs. Never invoked automatically. |
+| mcp.videodb.io | HTTPS | MCP Transport | Optional VideoDB cloud indexing | **Strictly opt-in**: Optional external cloud MCP server; requires explicit user permission per video upload. |
+
+All video generation, prompt compilation, frame extraction, face alignment, and timeline assembly execute entirely on the user's local machine and through the user's authenticated Google Flow MCP session.
 
 ## Hard rules
 - No phase starts before the previous gate passes. No idea or reference video -> no work.

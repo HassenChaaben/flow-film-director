@@ -36,6 +36,45 @@
 
 ---
 
+## 📑 Table of Contents
+
+- [💡 Overview & The Generative Video Problem](#-overview--the-generative-video-problem)
+- [📊 Production Economics: Standard Prompting vs. Flow Film Director](#-production-economics-standard-prompting-vs-flow-film-director)
+- [💎 Free Community Edition vs. Pro Studio Edition ($4.99)](#-free-community-edition-vs-pro-studio-edition-499)
+- [🚀 Key Features & Architectural Innovation](#-key-features--architectural-innovation)
+- [⚡ Quick Start (< 5 Minutes)](#-quick-start-5-minutes)
+- [📦 Installation & Environment Setup](#-installation--environment-setup)
+  - [Prerequisites](#prerequisites)
+  - [Master One-Click All-in-One Installer](#master-one-click-all-in-one-installer-recommended)
+  - [Manual Step-by-Step Configuration](#manual-step-by-step-configuration)
+- [🎯 Autonomous Workflows & Supported Video Intents](#-autonomous-workflows--supported-video-intents)
+- [🎬 Production Showcase Examples](#-production-showcase-examples)
+  - [Case Study 1: Hassen's Story (Docu-Narrative with Arabic Voiceover)](#case-study-1-hassens-story--cinematic-docu-narrative)
+  - [Case Study 2: Marwen & Hassen (Superhero Action Stunt Remake)](#case-study-2-marwen--hassen--action-stunt-remake)
+- [📘 Creator Production Playbook & Prompt Recipes](#-creator-production-playbook--prompt-recipes)
+  - [The 4 Golden Production Rules](#the-4-golden-production-rules)
+  - [Production Storyboard Schema (`storyboard.json`)](#production-storyboard-schema-storyboardjson)
+  - [Prompt Recipes (0-Credit Keyframes & Video Motion)](#prompt-recipes)
+  - [Actions That Break vs. Production Solutions](#actions-that-break-vs-production-solutions)
+- [🎙️ Quad-Engine Voice Suite & Voicebox Integration](#-quad-engine-voice-suite--voicebox-integration)
+  - [Why Jamie Pine's Voicebox is the Default Studio](#why-jamie-pines-voicebox-is-the-default-studio)
+  - [Connecting Voicebox to Your AI Agent](#connecting-voicebox-to-your-ai-agent)
+  - [Audio Modes & Sidechain Compression Ducking](#audio-modes--sidechain-compression-ducking)
+- [✂️ Programmatic Video Editing & Timeline Automation (Remotion)](#-programmatic-video-editing--timeline-automation-remotion)
+  - [Declarative React Timeline Architecture](#declarative-react-timeline-architecture)
+  - [Headless CLI Rendering](#headless-cli-rendering)
+  - [Surgical Video Timeline Editing (`edit_video.py`)](#surgical-video-timeline-editing-edit_videopy)
+- [🏗️ Pipeline Architecture & Verification Gates](#-pipeline-architecture--verification-gates)
+  - [End-to-End Execution Sequence](#end-to-end-execution-sequence)
+  - [Calibrated Quality Gate Thresholds](#calibrated-quality-gate-thresholds)
+  - [Repository Layout](#repository-layout)
+- [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
+- [⚠️ Troubleshooting & Frequently Asked Questions](#️-troubleshooting--frequently-asked-questions)
+- [🛡️ Responsible AI Use & Ethical Guardrails](#-responsible-ai-use--ethical-guardrails)
+- [📜 Credits & License](#-credits--license)
+
+---
+
 ## 💡 Overview & The Generative Video Problem
 
 Generative text-to-video AI models like **Google Veo** and **Omni** can create breathtaking 5-second video clips. However, when creators try to combine multiple clips into a coherent movie or commercial, production collapses due to four fatal flaws:
@@ -105,46 +144,6 @@ Flow Film Director is distributed under a transparent **Open Core** model:
   </a><br/>
   <sub>⏳ <i>Listing submitted and completing review — if temporarily not found, it will be live on Agensi within 2 days!</i></sub>
 </p>
-
----
-
-## 📑 Table of Contents
-
-- [💡 Overview & The Generative Video Problem](#-overview--the-generative-video-problem)
-- [📊 Production Economics: Standard Prompting vs. Flow Film Director](#-production-economics-standard-prompting-vs-flow-film-director)
-- [💎 Free Community Edition vs. Pro Studio Edition ($4.99)](#-free-community-edition-vs-pro-studio-edition-499)
-- [🚀 Key Features & Architectural Innovation](#-key-features--architectural-innovation)
-- [⚡ Quick Start (< 5 Minutes)](#-quick-start-5-minutes)
-- [📦 Installation & Environment Setup](#-installation--environment-setup)
-  - [Prerequisites](#prerequisites)
-  - [Master One-Click All-in-One Installer](#master-one-click-all-in-one-installer-recommended)
-  - [Manual Step-by-Step Configuration](#manual-step-by-step-configuration)
-- [🎯 Autonomous Workflows & Supported Video Intents](#-autonomous-workflows--supported-video-intents)
-- [🎬 Production Showcase Examples](#-production-showcase-examples)
-  - [Case Study 1: Hassen's Story (Docu-Narrative with Arabic Voiceover)](#case-study-1-hassens-story--cinematic-docu-narrative)
-  - [Case Study 2: Marwen & Hassen (Superhero Action Stunt Remake)](#case-study-2-marwen--hassen--action-stunt-remake)
-- [📘 Creator Production Playbook & Prompt Recipes](#-creator-production-playbook--prompt-recipes)
-  - [The 4 Golden Production Rules](#the-4-golden-production-rules)
-  - [Production Storyboard Schema (`storyboard.json`)](#production-storyboard-schema-storyboardjson)
-  - [Prompt Recipes (0-Credit Keyframes & Video Motion)](#prompt-recipes)
-  - [Actions That Break vs. Production Solutions](#actions-that-break-vs-production-solutions)
-- [🎙️ Quad-Engine Voice Suite & Voicebox Integration](#-quad-engine-voice-suite--voicebox-integration)
-  - [Why Jamie Pine's Voicebox is the Default Studio](#why-jamie-pines-voicebox-is-the-default-studio)
-  - [Connecting Voicebox to Your AI Agent](#connecting-voicebox-to-your-ai-agent)
-  - [Audio Modes & Sidechain Compression Ducking](#audio-modes--sidechain-compression-ducking)
-- [✂️ Programmatic Video Editing & Timeline Automation (Remotion)](#-programmatic-video-editing--timeline-automation-remotion)
-  - [Declarative React Timeline Architecture](#declarative-react-timeline-architecture)
-  - [Headless CLI Rendering](#headless-cli-rendering)
-  - [Surgical Video Timeline Editing (`edit_video.py`)](#surgical-video-timeline-editing-edit_videopy)
-- [🏗️ Pipeline Architecture & Verification Gates](#-pipeline-architecture--verification-gates)
-  - [End-to-End Execution Sequence](#end-to-end-execution-sequence)
-  - [Calibrated Quality Gate Thresholds](#calibrated-quality-gate-thresholds)
-  - [Repository Layout](#repository-layout)
-- [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
-- [⚠️ Troubleshooting & Frequently Asked Questions](#️-troubleshooting--frequently-asked-questions)
-- [🛡️ Responsible AI Use & Ethical Guardrails](#-responsible-ai-use--ethical-guardrails)
-- [🗺️ Project Roadmap](#️-project-roadmap)
-- [📜 Credits & License](#-credits--license)
 
 ---
 
@@ -379,7 +378,7 @@ A 54.5-second cinematic documentary tracing a young engineer's journey from Tuni
   <thead>
     <tr>
       <th width="35%" align="center">Reference Identity Photo</th>
-      <th width="65%" align="center">Generated 54.5s Film Preview</th>
+      <th width="65%" align="center">Generated 54.5s Film</th>
     </tr>
   </thead>
   <tbody>
@@ -389,12 +388,11 @@ A 54.5-second cinematic documentary tracing a young engineer's journey from Tuni
         <sub><b>Input Reference:</b> Single 1080p studio portrait</sub>
       </td>
       <td align="center" valign="middle">
-        <a href="examples/showcase/example1_hassen_story/hassen_story.mp4" title="Click to watch full 54.5s film in HD">
-          <img src="examples/showcase/example1_hassen_story/preview.gif" width="480" alt="Hassen Story Film Preview" style="border-radius: 8px;" />
-        </a><br/>
-        <sub><a href="examples/showcase/example1_hassen_story/hassen_story.mp4">▶ <b>Watch Full Film with Arabic Voiceover (54.5s 1080p MP4)</b></a></sub>
-      </td>
-    </tr>
+
+https://github.com/user-attachments/assets/e2f8c8e4-acb5-4b7a-a4eb-55bdde820471
+
+</td>
+</tr>
   </tbody>
 </table>
 
@@ -413,7 +411,7 @@ A 51.5-second two-person choreographed stunt sequence inspired by superhero comb
   <thead>
     <tr>
       <th width="35%" align="center">Character Reference Photos</th>
-      <th width="65%" align="center">Generated Stunt Remake Preview</th>
+      <th width="65%" align="center">Generated Stunt Remake Film</th>
     </tr>
   </thead>
   <tbody>
@@ -425,12 +423,11 @@ A 51.5-second two-person choreographed stunt sequence inspired by superhero comb
         <sub><b>Character 1 (Hassen) & Character 2 (Marwen)</b></sub>
       </td>
       <td align="center" valign="middle">
-        <a href="examples/showcase/example2_marwen_hassen_action/marwen_hassen_action.mp4" title="Click to watch full action remake">
-          <img src="examples/showcase/example2_marwen_hassen_action/preview.gif" width="480" alt="Action Sequence Preview" style="border-radius: 8px;" />
-        </a><br/>
-        <sub><a href="examples/showcase/example2_marwen_hassen_action/marwen_hassen_action.mp4">▶ <b>Watch Full Action Film with Orchestral Score (51.5s MP4)</b></a></sub>
-      </td>
-    </tr>
+
+https://github.com/user-attachments/assets/65eb873b-3010-43de-8b5f-56f772244dcb
+
+</td>
+</tr>
   </tbody>
 </table>
 
@@ -805,16 +802,6 @@ Flow Film Director is designed for legitimate creative storytelling, education, 
 - **Deceptive Impersonation Prohibition**: Do not generate political deepfakes, defamatory media, non-consensual sexual content, or fraudulent impersonations.
 - **Watermarking & Provenance**: Audio outputs preserve Resemble's inaudible Perth acoustic watermark for digital provenance tracking. Do not attempt to strip provenance identifiers.
 - **Platform Compliance**: All video generation must comply with [Google's Generative AI Prohibited Use Policy](https://policies.google.com/terms/generative-ai/use-policy).
-
----
-
-## 🗺️ Project Roadmap
-
-- [x] **v1.0.0**: 5-stage gated directing pipeline, OpenCV SFace likeness auditing, and `flow-mcp` automation.
-- [x] **v1.2.0**: Autonomous `video-creator` agent persona, Voicebox local studio integration, Remotion React editing suite, and one-click master installers.
-- [ ] **v1.3.0**: Automated multi-camera angle coverage (simultaneous master, over-the-shoulder, and close-up generation).
-- [ ] **v1.4.0**: ComfyUI local node bridge for hybrid cloud/local generation workflows.
-- [ ] **v2.0.0**: Autonomous Foley audio synthesis (sound effects dynamically matched to on-screen physical impacts).
 
 ---
 

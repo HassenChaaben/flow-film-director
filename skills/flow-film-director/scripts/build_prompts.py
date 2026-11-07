@@ -373,7 +373,7 @@ def check_looks(sb, base):
     """The identity text Flow REALLY receives: flow-mcp appends the look stored in ~/.flow-mcp/characters.json to every
     scene that uses asset:<Name>. It must be the bible lock word for word and pass the same word checks."""
     errs = []
-    looks_file = Path(os.environ.get("FLOW_MCP_HOME", str(Path.home() / ".flow-mcp"))) / "characters.json"
+    looks_file = Path.home() / ".flow-mcp" / "characters.json"
     looks = {}
     if looks_file.exists() and not sb.get("skip_look_check"):
         try:

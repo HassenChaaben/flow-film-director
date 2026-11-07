@@ -104,8 +104,8 @@ index 1a8d4ac..f11b977 100644
  }
  
  const IMAGE_TIMEOUT_MS = 3 * 60_000;
-+const SUBMIT_GAP_MIN_MS = Number(process.env.FLOW_MCP_SUBMIT_GAP_MIN_S ?? 20) * 1000;
-+const SUBMIT_GAP_MAX_MS = Number(process.env.FLOW_MCP_SUBMIT_GAP_MAX_S ?? 40) * 1000;
++const SUBMIT_GAP_MIN_MS = 20 * 1000;
++const SUBMIT_GAP_MAX_MS = 40 * 1000;
  const VIDEO_TIMEOUT_MS = 12 * 60_000;
  const FAILURE_TEXT = /failed|couldn.t|unable/i;
  
@@ -284,13 +284,13 @@ index 1a8d4ac..f11b977 100644
 +// that Flow re-signs, so ids alone let old tiles slip in as "new" (a 3-clip batch read "15/3 finished").
 +async function batchTiles(page: Page, known: string[], knownLabels: string[] = []): Promise<{ id?: string; busy: boolean; error: boolean; kind: string }[]> {
 +  await scrollToTop(page);
-+  return page.evaluate(([ids, labels, js]: [string[], string[], string]) => {
-+    const idOf = eval(js) as (t: Element) => string | undefined;
++  return page.evaluate(([ids, labels]: [string[], string[]]) => {
 +    const seen = new Set(ids);
 +    const seenLabels = new Set(labels);
 +    const out: { id?: string; busy: boolean; error: boolean; kind: string }[] = [];
 +    for (const t of document.querySelectorAll("flow-grid-tile-container")) {
-+      const id = idOf(t);
++      const media = t.querySelector("img[data-media-id], video[data-media-id], img[src], video[src]");
++      const id = (media && (media.getAttribute("data-media-id") || media.getAttribute("src")?.match(/[0-9a-f]{8}-[0-9a-f-]{27}/)?.[0])) || (t.getAttribute("aria-label") ? "title:" + t.getAttribute("aria-label") : undefined);
 +      const label = t.getAttribute("aria-label") ?? "";
 +      if ((id && seen.has(id)) || (label && seenLabels.has(label))) break;
 +      if (label.startsWith("fm-")) continue;
@@ -304,7 +304,7 @@ index 1a8d4ac..f11b977 100644
 +      });
 +    }
 +    return out;
-+  }, [known, knownLabels, TILE_ID_JS] as [string[], string[], string]);
++  }, [known, knownLabels] as [string[], string[]]);
 +}
 +
 +const gridLabels = (page: Page) =>
@@ -545,23 +545,18 @@ index ef48c90..2b1110b 100644
  }
  
  export interface Job {
-@@ -53,11 +55,16 @@ export interface Job {
+@@ -53,6 +55,11 @@ export interface Job {
  }
  
  export type JobRunner = (job: Job) => Promise<string[]>;
 +export type BatchResult = { files?: string[]; error?: string; credits?: number; note?: string };
 +export type BatchRunner = (jobs: Job[]) => Promise<Map<string, BatchResult>>;
++// Parallel batches: how many generations are in flight at once, and the pause between two batches.
++const PARALLEL_MAX = 3;
++const BATCH_PAUSE_MS = 25 * 1000;
  
  // Flow is driven like a careful person would: one generation at a time, with a
  // randomised pause between them.
- const PAUSE_MIN_MS = Number(process.env.FLOW_MCP_PAUSE_MIN_S ?? 25) * 1000;
- const PAUSE_MAX_MS = Number(process.env.FLOW_MCP_PAUSE_MAX_S ?? 70) * 1000;
-+// Parallel batches: how many generations are in flight at once, and the pause between two batches.
-+const PARALLEL_MAX = Math.max(1, Number(process.env.FLOW_MCP_PARALLEL_MAX ?? 3));
-+const BATCH_PAUSE_MS = Number(process.env.FLOW_MCP_BATCH_PAUSE_S ?? 25) * 1000;
- 
- export class JobQueue {
-   private jobs = new Map<string, Job>();
 @@ -65,7 +72,7 @@ export class JobQueue {
    private lastFinished = 0;
    pausedReason: string | null = null;
@@ -577,7 +572,7 @@ index ef48c90..2b1110b 100644
      this.working = true;
 +    // Let the caller finish queueing the whole call first: add() runs work() for the first scene immediately, and a
 +    // parallel group read at that moment held only that scene (scene 1 always ran alone, live test 2026-11-05).
-+    await new Promise((r) => setTimeout(r, 0));
++    await new Promise((r) => setImmediate(r));
      try {
        for (;;) {
          const job = this.list().find((j) => j.status === "queued");

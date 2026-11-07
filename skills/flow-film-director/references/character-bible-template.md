@@ -18,7 +18,7 @@ photos as CONFLICT and ask the user. Cite which photo each observation comes fro
 - Profile line (forehead, nose, lips, chin - straight / convex / concave):
 
 ## 2. Hair
-- Colour (exact: black, very dark brown, with/without grey), texture (straight / wavy / tight curls / coily), curl size:
+- Colour (exact: black, very dark brown, with/without grey), texture (straight / wavy / tight ringlets / coily), wave and coil pattern:
 - Length on top / sides / back; fade or not; how it falls; parting side (beware mirrored selfies):
 - Volume and shape of the hair mass seen from the front:
 

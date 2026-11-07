@@ -147,53 +147,56 @@ Flow Film Director is distributed under a transparent **Open Core** model:
 ## 🚀 Key Features & Architectural Innovation
 
 ```mermaid
-flowchart TD
-    User([🎬 User Video Brief]) --> Agent[🤖 Autonomous video-creator Agent]
+flowchart LR
+    classDef start fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+    classDef step fill:#f8fafc,stroke:#64748b,stroke-width:1.5px,color:#0f172a
+    classDef gate fill:#fef3c7,stroke:#f59e0b,stroke-width:1.5px,color:#78350f
+    classDef master fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b
+
+    Brief(["🎬 User Brief<br/>& Photos"]):::start
     
-    subgraph Phase1["1. PRE-PRODUCTION (0 Credits)"]
-        Agent --> Prep[prep_refs.py: Crop & Normalize Photos]
-        Prep --> Audit[ref_audit.py: YuNet + SFace Extraction]
-        Audit --> Bible[Locked Character Bible & Invariants]
-        Bible --> SB[storyboard.json: Scene Breakdown]
+    subgraph P1["1. PREPARE (0 Cr)"]
+        Audit["YuNet & SFace Audit<br/>Locked Character Bible"]:::step
     end
 
-    subgraph Phase2["2. KEYFRAME GATING (0 Credits)"]
-        SB --> Nano[Google Flow: Nano Banana Stills]
-        Nano --> Gate1{Identity Check >= 0.50?}
-        Gate1 -- Fail --> RegenStill[Auto-Adjust Prompt & Reshoot Still]
-        RegenStill --> Nano
-        Gate1 -- Pass --> ContactSheet[Contact Sheet Approval]
+    subgraph P2["2. KEYFRAME (0 Cr)"]
+        Still["Nano Banana Stills<br/>Start / End Frames"]:::step
+        G1{"Likeness<br/>≥ 0.50?"}:::gate
+        Still --> G1
     end
 
-    subgraph Phase3["3. GENERATIVE SHOOTING (Paid Credits)"]
-        ContactSheet --> Veo[Google Flow: Veo 3.1 / Omni 1.1]
-        Veo --> Gate2{Motion & Face Check?}
-        Gate2 -- Fail --> FastRetake[fast_review.py: Auto-Retake Clip]
-        FastRetake --> Veo
-        Gate2 -- Pass --> RawTakes[Approved Master Video Takes]
+    subgraph P3["3. SHOOT (Flow)"]
+        Veo["Veo 3.1 / Omni Video<br/>Animated from Pixels"]:::step
+        G2{"Motion & Face<br/>Gate OK?"}:::gate
+        Veo --> G2
     end
 
-    subgraph Phase4["4. AUDIO & LOCAL VOICE STUDIO"]
-        RawTakes --> Voicebox[Voicebox Local AI Studio :17493]
-        Voicebox --> VO[Biometric Cloned Voiceover]
-        VO --> Ducking[Sidechain Compressor: -14 dB Ducking]
+    subgraph P4["4. LOCAL AUDIO"]
+        Voice["Voicebox Biometric VO<br/>-14 dB Sidechain Ducking"]:::step
     end
 
-    subgraph Phase5["5. PROGRAMMATIC REMOTION TIMELINE"]
-        Ducking --> ReactComp[Remotion: React Video Composition]
-        RawTakes --> ReactComp
-        ReactComp --> SRT[Kinetic Animated Word-by-Word Captions]
-        SRT --> Renderer[Chromium Headless Renderer]
-        Renderer --> FinalMaster([🎥 Final 1080p Broadcast MP4 Master])
+    subgraph P5["5. MASTER DELIVERY"]
+        Render["Remotion React Timeline<br/>Kinetic Subtitles & FX"]:::step
     end
 
-    classDef phase fill:#f8fafc,stroke:#3b82f6,stroke-width:2px,color:#1e293b;
-    classDef highlight fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#0f172a;
-    classDef success fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#052e16;
-    class Phase1,Phase2,Phase3,Phase4,Phase5 phase;
-    class Agent highlight;
-    class FinalMaster success;
+    Final(["🎥 1080p Broadcast<br/>MP4 Master"]):::master
+
+    Brief --> Audit
+    Audit --> Still
+    G1 -- "Pass" --> Veo
+    G2 -- "Pass" --> Voice
+    Voice --> Render
+    Render --> Final
 ```
+
+| Capability | How It Works | Production Benefit |
+|---|---|---|
+| **Autonomous `video-creator` Agent** | Pre-configured persona for Antigravity & Claude Code | Manages casting, generation, audio, and post-production without prompt drift. |
+| **Identity Lock (SFace & YuNet)** | Crops, cleans, and measures face embeddings across angles | Subject remains identical across every take ($\ge 0.50$ similarity). |
+| **0-Credit Keyframe Gating** | Generates Nano Banana stills first before triggering paid video | Validates framing and identity for 0 credits before spending Flow budget. |
+| **Shot-by-Shot Stunt Remakes** | MediaPipe Pose extracts joint angles from reference videos | Matches camera framing, duration, and choreography beat for beat ($\ge 0.70$). |
+| **Quad-Engine Voice Suite** | Jamie Pine's Voicebox (Default Free), ElevenLabs, RVC, Local | Free local voice studio & cloud generation across 23+ languages with automatic ducking. |
+| **Programmatic Video Editing** | Remotion React timeline & Chromium headless renderer | Replaces desktop editors; builds kinetic captions, lower-thirds, and transitions. |
 
 ---
 

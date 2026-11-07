@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/flow-film-director-banner.jpg" alt="Flow Film Director Banner" width="800" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);" />
+  <img src="docs/assets/flow-film-director-banner.jpg" alt="Flow Film Director Banner" width="520" style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);" />
 </p>
 
 <h1 align="center">🎬 Flow Film Director</h1>

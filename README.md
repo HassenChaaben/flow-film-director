@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="https://m8ven.ai/mcp/hassenchaaben/flow-film-director?s=readme"><img src="https://m8ven.ai/badge/mcp/hassenchaaben/flow-film-director" alt="M8ven Score" /></a>
   <a href="https://github.com/HassenChaaben/flow-film-director/releases"><img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version 1.2.0" /></a>
   <a href="https://deepmind.google/technologies/gemini/"><img src="https://img.shields.io/badge/Google%20Antigravity-Ready-4285F4?logo=google&logoColor=white" alt="Google Antigravity Ready" /></a>
   <a href="https://claude.ai"><img src="https://img.shields.io/badge/Claude%20Code-Ready-D97706?logo=anthropic&logoColor=white" alt="Claude Code Ready" /></a>

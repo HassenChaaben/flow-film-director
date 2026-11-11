@@ -61,11 +61,58 @@ ANTIGRAVITY_AGENTS = GEMINI_DIR / "config" / "agents"
 ANTIGRAVITY_PLUGIN = GEMINI_DIR / "config" / "plugins" / "flow-film-director"
 ANTIGRAVITY_MCP_CFG = GEMINI_DIR / "config" / "mcp_config.json"
 ANTIGRAVITY_CFG = GEMINI_DIR / "config" / "config.json"
+VOICEBOX_SERVER = {"url": "http://127.0.0.1:17493/mcp", "transport": "http", "disabled": False}
 
 # Claude Code paths
 CLAUDE_DIR = HOME / ".claude"
 CLAUDE_SKILLS = CLAUDE_DIR / "skills"
 CLAUDE_AGENTS = CLAUDE_DIR / "agents"
+
+
+class BrokenConfig(Exception):
+    """An existing config file is not valid JSON - it must not be overwritten."""
+
+
+def read_config(path: Path) -> dict:
+    """Missing or empty file -> {} (safe to create). A JSON object -> that object.
+    Anything else -> BrokenConfig, so a file the user edited by hand is never replaced."""
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except FileNotFoundError:
+        return {}
+    if not text.strip():
+        return {}
+    try:
+        data = json.loads(text)
+    except ValueError as exc:
+        raise BrokenConfig(f"{path} is not valid JSON ({exc})") from exc
+    if not isinstance(data, dict):
+        raise BrokenConfig(f"{path} is not a JSON object")
+    return data
+
+
+def write_config(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def add_antigravity_mcp_servers(servers: dict) -> bool:
+    """Add/replace only our MCP servers in Antigravity's mcp_config.json; every other server is kept."""
+    try:
+        cfg = read_config(ANTIGRAVITY_MCP_CFG)
+    except BrokenConfig as exc:
+        print(yellow(f"  ! {exc}"))
+        print(yellow("    It was left unchanged. Fix it (or empty it), then run the installer again."))
+        return False
+    mcp = cfg.setdefault("mcpServers", {})
+    if not isinstance(mcp, dict):
+        print(yellow(f"  ! 'mcpServers' in {ANTIGRAVITY_MCP_CFG} is not an object; left unchanged."))
+        return False
+    mcp.update(servers)
+    write_config(ANTIGRAVITY_MCP_CFG, cfg)
+    return True
 
 
 def color(text: str, code: str) -> str:
@@ -148,7 +195,7 @@ def locate_existing_flow_mcp(hint_path: str | None = None) -> Path | None:
     # Look inside Antigravity's mcp_config.json if it exists
     if ANTIGRAVITY_MCP_CFG.exists():
         try:
-            mcp_data = json.loads(ANTIGRAVITY_MCP_CFG.read_text(encoding="utf-8"))
+            mcp_data = read_config(ANTIGRAVITY_MCP_CFG)
             flow_entry = mcp_data.get("mcpServers", {}).get("flow", {})
             args = flow_entry.get("args", [])
             for arg in args:
@@ -201,22 +248,8 @@ def patch_flow_mcp(flow_mcp_dir: Path) -> None:
 
 
 def configure_antigravity_voicebox() -> None:
-    ANTIGRAVITY_MCP_CFG.parent.mkdir(parents=True, exist_ok=True)
-    cfg_data = {"mcpServers": {}}
-    if ANTIGRAVITY_MCP_CFG.exists():
-        try:
-            cfg_data = json.loads(ANTIGRAVITY_MCP_CFG.read_text(encoding="utf-8"))
-        except Exception:
-            cfg_data = {"mcpServers": {}}
-
-    mcp_servers = cfg_data.setdefault("mcpServers", {})
-    mcp_servers["voicebox"] = {
-        "url": "http://127.0.0.1:17493/mcp",
-        "transport": "http",
-        "disabled": False,
-    }
-    ANTIGRAVITY_MCP_CFG.write_text(json.dumps(cfg_data, indent=2), encoding="utf-8")
-    print(green(f"  ✓ Configured 'voicebox' MCP server in Antigravity ({ANTIGRAVITY_MCP_CFG})"))
+    if add_antigravity_mcp_servers({"voicebox": VOICEBOX_SERVER}):
+        print(green(f"  ✓ Configured 'voicebox' MCP server in Antigravity ({ANTIGRAVITY_MCP_CFG})"))
 
 
 def configure_claude_voicebox() -> None:
@@ -231,33 +264,11 @@ def configure_claude_voicebox() -> None:
 
 
 def configure_antigravity_mcp(flow_mcp_dir: Path) -> None:
-    ANTIGRAVITY_MCP_CFG.parent.mkdir(parents=True, exist_ok=True)
-    cfg_data = {"mcpServers": {}}
-    if ANTIGRAVITY_MCP_CFG.exists():
-        try:
-            cfg_data = json.loads(ANTIGRAVITY_MCP_CFG.read_text(encoding="utf-8"))
-        except Exception:
-            cfg_data = {"mcpServers": {}}
-
     dist_index = (flow_mcp_dir / "dist" / "index.js").resolve()
     node_bin = shutil.which("node") or "node"
-
-    # Configure server
-    mcp_servers = cfg_data.setdefault("mcpServers", {})
-    mcp_servers["flow"] = {
-        "command": node_bin,
-        "args": [str(dist_index)],
-        "disabled": False,
-        "timeoutSeconds": 600,
-    }
-    mcp_servers["voicebox"] = {
-        "url": "http://127.0.0.1:17493/mcp",
-        "transport": "http",
-        "disabled": False,
-    }
-
-    ANTIGRAVITY_MCP_CFG.write_text(json.dumps(cfg_data, indent=2), encoding="utf-8")
-    print(green(f"  ✓ Registered 'flow' & 'voicebox' MCP servers in Antigravity ({ANTIGRAVITY_MCP_CFG})"))
+    flow = {"command": node_bin, "args": [str(dist_index)], "disabled": False, "timeoutSeconds": 600}
+    if add_antigravity_mcp_servers({"flow": flow, "voicebox": VOICEBOX_SERVER}):
+        print(green(f"  ✓ Registered 'flow' & 'voicebox' MCP servers in Antigravity ({ANTIGRAVITY_MCP_CFG})"))
 
 
 def configure_claude_mcp(flow_mcp_dir: Path) -> None:
@@ -332,17 +343,16 @@ def install_antigravity_plugin() -> None:
                 ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".git")
             )
 
-    # Enable in config.json
-    if ANTIGRAVITY_CFG.exists():
-        try:
-            cfg = json.loads(ANTIGRAVITY_CFG.read_text(encoding="utf-8"))
-            plugins = cfg.setdefault("plugins", {})
-            if "flow-film-director" not in plugins:
-                plugins["flow-film-director"] = {"enabled": True}
-                ANTIGRAVITY_CFG.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
-                print(green("  ✓ Enabled plugin 'flow-film-director' in Antigravity config.json"))
-        except Exception:
-            pass
+    # Enable in config.json (created if missing or empty; never overwritten if it is not valid JSON)
+    try:
+        cfg = read_config(ANTIGRAVITY_CFG)
+        plugins = cfg.setdefault("plugins", {})
+        if isinstance(plugins, dict) and plugins.get("flow-film-director", {}).get("enabled") is not True:
+            plugins["flow-film-director"] = {"enabled": True}
+            write_config(ANTIGRAVITY_CFG, cfg)
+            print(green("  ✓ Enabled plugin 'flow-film-director' in Antigravity config.json"))
+    except BrokenConfig as exc:
+        print(yellow(f"  ! {exc} - left unchanged; enable 'flow-film-director' in Antigravity's Customizations."))
 
     print(green(f"  ✓ Antigravity plugin package registered at {ANTIGRAVITY_PLUGIN}"))
 

@@ -21,6 +21,19 @@ import sys
 from pathlib import Path
 
 PATCH_DIR = Path(__file__).resolve().parent.parent / "flow-mcp-patches"
+# Filled in by the Agensi build (one self-contained script, no patch folder next to it): {file name: text}.
+EMBEDDED_PATCHES: dict = {}
+NO_WINDOW = {"creationflags": 0x08000000} if os.name == "nt" else {}
+
+
+def load_patches() -> tuple[list[tuple[str, str]], str]:
+    """(name, text) of every patch in order, plus the BASE note; folder first, embedded copy second."""
+    if PATCH_DIR.is_dir() and any(PATCH_DIR.glob("*.patch")):
+        files = {f.name: f.read_text(encoding="utf-8") for f in PATCH_DIR.iterdir() if f.is_file()}
+    else:
+        files = dict(EMBEDDED_PATCHES)
+    patches = sorted((n, t) for n, t in files.items() if n.endswith(".patch"))
+    return patches, files.get("BASE.txt", "").strip()
 
 
 def find_flow_mcp(hint: str | None = None) -> Path | None:
@@ -32,9 +45,9 @@ def find_flow_mcp(hint: str | None = None) -> Path | None:
     return None
 
 
-def git_apply(root: Path, patch: Path, *flags: str) -> bool:
-    p = subprocess.run(["git", "apply", "--whitespace=nowarn", "--ignore-whitespace", *flags, str(patch)],
-                       cwd=root, capture_output=True, text=True)
+def git_apply(root: Path, patch: str, *flags: str) -> bool:
+    p = subprocess.run(["git", "apply", "--whitespace=nowarn", "--ignore-whitespace", *flags],
+                       cwd=root, input=patch, capture_output=True, text=True, encoding="utf-8", **NO_WINDOW)
     return p.returncode == 0
 
 
@@ -48,33 +61,35 @@ def main():
     if not shutil.which("git"):
         print("git is needed to apply the patches")
         sys.exit(1)
-    patches = sorted(PATCH_DIR.glob("*.patch"))
+    patches, base = load_patches()
+    if not patches:
+        print("No patch files found (flow-mcp-patches folder missing).")
+        sys.exit(1)
     missing = []
-    for p in patches:
-        if git_apply(root, p, "--reverse", "--check"):
-            print(f"  applied  {p.name}")
-        elif git_apply(root, p, "--check"):
-            print(f"  missing  {p.name}")
-            missing.append(p)
+    for name, text in patches:
+        if git_apply(root, text, "--reverse", "--check"):
+            print(f"  applied  {name}")
+        elif git_apply(root, text, "--check"):
+            print(f"  missing  {name}")
+            missing.append((name, text))
         else:
-            base = (PATCH_DIR / "BASE.txt").read_text(encoding="utf-8").strip() if (PATCH_DIR / "BASE.txt").exists() else ""
-            print(f"  CONFLICT {p.name} (flow-mcp changed here; apply it by hand or update flow-mcp)")
+            print(f"  CONFLICT {name} (flow-mcp changed here; apply it by hand or update flow-mcp)")
             if base:
                 print("  " + base)
-            missing.append(p)
+            missing.append((name, text))
     if not missing:
         print(f"flow-mcp at {root} has every flow-film-director patch.")
         sys.exit(0)
     if check:
         print(f"{len(missing)} patch(es) to apply: run patch_flow_mcp.py without --check")
         sys.exit(3)
-    for p in missing:
-        if not git_apply(root, p):
-            print(f"failed to apply {p.name}; stopping (nothing after it was applied)")
+    for name, text in missing:
+        if not git_apply(root, text):
+            print(f"failed to apply {name}; stopping (nothing after it was applied)")
             sys.exit(1)
-        print(f"  applied {p.name}")
+        print(f"  applied {name}")
     npm = "npm.cmd" if os.name == "nt" else "npm"
-    b = subprocess.run([npm, "run", "build"], cwd=root, capture_output=True, text=True)
+    b = subprocess.run([npm, "run", "build"], cwd=root, capture_output=True, text=True, **NO_WINDOW)
     if b.returncode != 0:
         print("npm run build failed:\n" + (b.stderr or b.stdout)[-3000:])
         sys.exit(1)

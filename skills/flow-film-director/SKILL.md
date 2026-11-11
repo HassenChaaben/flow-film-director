@@ -1,7 +1,7 @@
 ---
 name: flow-film-director
 description: Direct any kind of video in Google Flow (flow MCP) with consistent, accurate subjects - short films, shot-for-shot remakes of a reference video, talking heads, product ads, explainers, social reels, music videos, place tours, animated or stylised films, animated photos, event recaps. People keep the SAME face, products and places stay identical, actions look real. Use whenever the user wants a video, film, reel or ad made with Flow, wants to copy a reference video with their own people, or complains that Flow changes faces, loses details or makes fake or funny actions ('keep my exact face', 'same characters', 'same actions as this video', 'a product ad', 'animate this photo'). Deterministic gated pipeline - required idea or reference video, intent profile, cleaned references, measured face/object/motion checks, storyboard.json compiled into exact prompts, verified keyframes, measured review of every clip, assembly and final watch.
-version: 1.3.0
+version: 1.4.0
 declared-hosts:
   - labs.google         # Google Flow, through the user's own signed-in browser session (flow MCP)
   - 127.0.0.1           # local Voicebox app on this computer (loopback only, enforced in code)

@@ -17,14 +17,30 @@ Exit 0 = at least one picture passes (the best is printed first), 1 = none passe
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
-import subprocess
 import sys
 from pathlib import Path
 
 import cv2
 
-HERE = Path(__file__).resolve().parent
+import identity_check
+
+
+
+def run_identity_check(args: list[str]) -> str:
+    """Run identity_check in this process (no second file needed) and return what it printed."""
+    buf, old = io.StringIO(), sys.argv
+    sys.argv = ["identity_check.py", *args]
+    try:
+        with contextlib.redirect_stdout(buf):
+            identity_check.main()
+    except SystemExit:
+        pass
+    finally:
+        sys.argv = old
+    return buf.getvalue()
 
 
 def main() -> int:
@@ -35,12 +51,11 @@ def main() -> int:
     ap.add_argument("--min-share", type=float, default=0.18)
     ap.add_argument("pictures", nargs="+")
     a = ap.parse_args()
-    p = subprocess.run([sys.executable, str(HERE / "identity_check.py"), *a.pictures, "--gallery", a.gallery,
-                        "--expect", a.name], capture_output=True, text=True)
+    out = run_identity_check([*a.pictures, "--gallery", a.gallery, "--expect", a.name])
     try:
-        results = json.loads(p.stdout)["results"]
+        results = json.loads(out)["results"]
     except (ValueError, KeyError):
-        print(json.dumps({"error": "identity_check failed: " + (p.stderr or p.stdout)[-400:]}))
+        print(json.dumps({"error": "identity_check failed: " + out[-400:]}))
         return 1
     rows = []
     for r in results:

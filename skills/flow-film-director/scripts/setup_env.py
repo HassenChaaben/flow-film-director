@@ -51,23 +51,43 @@ def download_models() -> None:
         tmp.replace(p)
 
 
+NO_WINDOW = {"creationflags": 0x08000000} if os.name == "nt" else {}
+
+
+def probe() -> None:
+    """Run by the venv Python: are the packages importable?"""
+    import cv2
+    import mediapipe  # noqa: F401
+    import numpy  # noqa: F401
+    assert cv2.FaceDetectorYN
+    print("ok")
+
+
+def selfcheck() -> None:
+    """Run by the venv Python: the models load and pose tracking works."""
+    from facekit import model_path
+    from motionkit import PoseTracker
+    model_path("yunet")
+    model_path("sface")
+    print("pose", PoseTracker().available)
+
+
 def main():
+    if "--probe" in sys.argv[1:]:
+        return probe()
+    if "--selfcheck" in sys.argv[1:]:
+        return selfcheck()
     py = venv_python()
     if not py.exists():
         print(f"creating {VENV} ...", flush=True)
-        subprocess.check_call([sys.executable, "-m", "venv", str(VENV)])
-    check = subprocess.run([str(py), "-c", "import mediapipe, cv2, numpy; cv2.FaceDetectorYN; print('ok')"],
-                           capture_output=True, text=True)
+        subprocess.check_call([sys.executable, "-m", "venv", str(VENV)], **NO_WINDOW)
+    me = str(Path(__file__).resolve())
+    check = subprocess.run([str(py), me, "--probe"], capture_output=True, text=True, **NO_WINDOW)
     if "ok" not in check.stdout:
-        subprocess.check_call([str(py), "-m", "pip", "install", "-q", "--upgrade", "pip"])
-        subprocess.check_call([str(py), "-m", "pip", "install", "-q", *PINNED])
+        subprocess.check_call([str(py), "-m", "pip", "install", "-q", "--upgrade", "pip"], **NO_WINDOW)
+        subprocess.check_call([str(py), "-m", "pip", "install", "-q", *PINNED], **NO_WINDOW)
     download_models()
-    here = Path(__file__).resolve().parent
-    code = (
-        "import sys; sys.path.insert(0, r'%s'); from facekit import model_path; from motionkit import PoseTracker; "
-        "model_path('yunet'); model_path('sface'); p = PoseTracker(); print('pose', p.available)" % here
-    )
-    subprocess.check_call([str(py), "-c", code])
+    subprocess.check_call([str(py), me, "--selfcheck"], **NO_WINDOW)
     print(f"PY={py}")
 
 

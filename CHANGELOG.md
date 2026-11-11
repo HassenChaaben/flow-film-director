@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-11-11
+
+### Changed
+- **Agensi delivery**: every script now ships as one self-contained file (`tools/build_agensi.py`, `tools/bundle_scoped.py`), because Agensi runs each script alone from a temporary file.
+- `patch_flow_mcp.py` can use patch text embedded in the script when the `flow-mcp-patches` folder is not next to it.
+- `cast_check.py` runs identity_check in the same process instead of starting a second file.
+- `setup_env.py` checks the environment by re-running itself (`--probe`, `--selfcheck`) instead of `python -c`; no console window flashes on Windows.
+
 ## [1.2.0] - 2026-11-07
 
 ### Added

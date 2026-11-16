@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from audiokit import load, tempo_and_beats  # noqa: E402
-from editkit import AR, FPS, even, loudness, loudnorm_filter, probe, render_parts, run  # noqa: E402
+from editkit import AR, FPS, audit_segments, even, loudness, loudnorm_filter, probe, render_parts, run  # noqa: E402
 
 
 def collect(sb_path: Path):
@@ -137,7 +137,7 @@ def mix_audio(video_in, out, audio, film_dur, workdir):
     run(["-y", *inputs, "-filter_complex", graph, "-map", "[mix]", "-c:a", "pcm_s16le", "-ar", str(AR), str(pre)])
     m = loudness(pre)
     gain = target - m["lufs"]
-    if m["true_peak"] + gain > -1.5:
+    if all(v == v and abs(v) != float("inf") for v in (gain, m["true_peak"])) and m["true_peak"] + gain > -1.5:
         # Peaky audio (drums) cannot reach the target in linear mode without clipping: raise the gain and let a
         # look-ahead limiter hold the peaks at -2 dBFS, then normalise exactly (linear) on the limited signal.
         lim = Path(workdir) / "limited.wav"
@@ -168,12 +168,14 @@ def main():
     if a.storyboard:
         sb_path = Path(a.storyboard).resolve()
         segs, audio, sb = collect(sb_path)
+        bridged = {sc["id"] for sc in sb.get("scenes", []) if sc.get("bridge_from_prev")}
         out = Path(a.out) if a.out else sb_path.parent / "final" / "film.mp4"
     elif a.clips:
         segs = []
         for i, c in enumerate(a.clips, 1):
             d = probe(c)["duration"]
             segs.append({"scene": i, "file": str(Path(c).resolve()), "in": 0.0, "out": d, "clip_len": d})
+        bridged = set()
         audio, out = {}, Path(a.out or "film.mp4")
     else:
         sys.exit(__doc__)
@@ -214,15 +216,21 @@ def main():
     t, timeline = 0.0, []
     for s in segs:
         d = s["out"] - s["in"]
-        timeline.append({"film_start": round(t, 4), "film_end": round(t + d, 4), "scene": s["scene"], "clip": s["file"],
-                         "clip_in": round(s["in"], 4), "clip_out": round(s["out"], 4), "speed": 1.0})
+        seg_row = {"film_start": round(t, 4), "film_end": round(t + d, 4), "scene": s["scene"], "clip": s["file"],
+                   "clip_in": round(s["in"], 4), "clip_out": round(s["out"], 4), "speed": 1.0}
+        if s["scene"] in bridged:
+            seg_row["bridged"] = True
+        timeline.append(seg_row)
         t += d
     meta = {"film": str(out.resolve()), "duration": round(probe(out)["duration"], 3), "fps": a.fps, "size": [even(w), even(h)],
             "audio": {**audio, "clip_volume": clip_vol}, "segments": timeline}
     tl = out.with_suffix(".timeline.json")
     tl.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    audit = audit_segments(segs, bridged_scenes=bridged)
     report.update({"film": str(out), "timeline": str(tl), "duration": meta["duration"], "expected": round(t, 3),
-                   "loudness": loudness(out)})
+                   "loudness": loudness(out), "transitions": audit["transitions"], "clip_jumps": audit["clip_jumps"]})
+    if audit["dark_first_frame"]:
+        report["dark_first_frame"] = True
     print(json.dumps(report, indent=2))
 
 

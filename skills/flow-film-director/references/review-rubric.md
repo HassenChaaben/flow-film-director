@@ -57,7 +57,10 @@ storyboard. (Same rule in SKILL.md.) In replicate mode also motion_match PASS on
 | Extra person / duplicate | Crowded location, vague cast | "exactly two people in the frame", empty background |
 | Background shifts | Location not fixed | Background photo as reference in keyframes; static camera |
 | Wrong lip sync / wrong speaker | Two speakers, long line | One speaker per clip, shorter line, mouth visible |
-| Jump between scenes (clothes, light) | Keyframes made separately | Same `outfit`/`light` text in storyboard.json for all scenes; a golden still as reference |
+| Jump between scenes (clothes, light, screen-side flip) | Disconnected START stills made separately | Use `bridge_from_prev: true` for continuous scenes + inspect Gate-4 Transition Board + same `outfit`/`light` |
+| Tail snap / internal flash in last 2-6 frames | Flow snaps abruptly to force `last_frame` or conflicting character beat | Run `edit_video.py audit --clip`, verify speech end with `flow_transcribe`, trim before `recommended_trim_out`; add beats for any `start -> end` changing character |
+| Ghosting / double heads at cut transition | Crossfade dissolve across shots where face scale or position shifts | Remove `xfade` dissolve; use `0.0 s` hard cut on bridge lock or clean axial cut after trimming snaps |
+| Co-star / pause degrades voice conversion | Wide unmapped speech region converts wrong speaker or silence | Pass tight active-speech `--map "t0-t1=Name"` (and re-run tight active span pass if needed, checking `flow_transcribe`) |
 | Action differs from the reference shot (mode A) | Beats vague or mistimed | Rewrite the scene's beats from the frames at 8 fps with exact times; END keyframe = reference end pose |
 
 ## review/scene-NN.md format

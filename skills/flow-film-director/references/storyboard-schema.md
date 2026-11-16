@@ -80,9 +80,10 @@ A complete working example: `examples/storyboard.example.json` in the repository
       "dialogue": [{"who": "Sam", "line": "There you are.", "mode": "says"}],   // mode "sings" for music videos; none -> "Nobody speaks"
       "sound": "quiet cafe ambience, distant street",
       "use_end_frame": true,                 // false for loops, packshots, animate-photo shots
+      "bridge_from_prev": false,             // true: lock scene N-1's verified accepted.end as this scene's START
       "accepted": {"start": "keyframes/scene-01-start.png", "end": "keyframes/scene-01-end.png", "clip": "clips/scene-01.mp4",
                    "clip_voiced": "clips/scene-01.voiced.mp4"},   // voiced take (voice_convert.py) - assembly prefers it
-      "trim": [0.4, 6.6]                     // the part of the clip that goes in the film (from review / motion_match)
+      "trim": [0.4, 6.6]                     // usable body before any AI tail snap (check audit --clip + flow_transcribe)
     }
   ]
 }
@@ -106,3 +107,4 @@ Rules the builder enforces (it exits 1 and lists every error):
 - at most 3 references per still, fixed priority: characters -> subjects -> accepted START (END frames only) ->
   style reference -> composition frame from the reference shot -> location photo. Dropped ones are listed in `scene-NN.md`;
 - each stage only contains open work (`accepted.start` / `accepted.end` / `accepted.clip` close it); `--only 3,5` for retakes.
+- `bridge_from_prev: true`: continuous scenes reuse scene `N-1`'s verified `accepted.end` as `START` (0 extra credits) and wait automatically until that `accepted.end` exists; any character whose `start` and `end` differ in a `use_end_frame` scene must appear in `beats`.

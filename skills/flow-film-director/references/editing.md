@@ -43,9 +43,13 @@ new picture.
 `"%PY%" edit_video.py apply --timeline final/film.timeline.json --edits edits/v2.json --out final/film-v2.mp4`
 Writes the new film and `film-v2.timeline.json` (edit again from there). Keep every version: `film-vN.mp4`.
 
-## 4. Check the edit
-- the report: duration before/after each step (cuts and inserts change it by exactly their length);
-- identity_check / object_check on the changed period of the new film (`--every 0.25`);
-- look at the frames around each boundary (`contact_sheet.py --video final/film-v2.mp4 --at ...`) and listen across it;
-- edits change only their range: tested - inside the range the picture changes strongly, outside it stays identical,
-  joins are frame-accurate, sound stays in sync (tests/run_tests.py).
+## 4. Check transitions & the edit (Ghost-Free Transition Rule)
+- **Seam & tail-snap audit**: run `"%PY%" edit_video.py audit --timeline final/film-v2.timeline.json --out-sheet review/cuts-audit.jpg` and inspect every `(-1f, cut, +1f)` triplet row:
+  - `frame_locked` (`seam_mae < 6`): continuous bridged scenes (`bridge_from_prev: true`) must hit `< 6` MAE (`0.0 s` hard cut, zero overlap).
+  - `cut` (`seam_mae >= 12`): intentional angle/location change; confirm crisp axial alignment and zero 2-6 frame AI tail snaps inside the outgoing shot (`edit_video.py audit --clip <take>` flags `tail_jumps` and reports `recommended_trim_out`; verify with `flow_transcribe` that speech has finished before trimming).
+- **Avoid `xfade` cross-dissolves across face/scale shifts**: dissolving linearly (`xfade=transition=fade`) between wide and close-up shots or shifting character positions paints a double-exposure "two-head" ghost across mid-transition frames. Use `0.0 s` hard cuts on bridges and clean axial match cuts; reserve dissolves strictly for locked empty-set lighting shifts.
+- **Keep frame 0 crisp**: avoid `fade: {"in": ...}` at `t=0` if platforms use the opening frame as the video thumbnail.
+- **Existing checks**:
+  - the report: duration before/after each step (cuts and inserts change it by exactly their length);
+  - identity_check / object_check on the changed period of the new film (`--every 0.25`);
+  - edits change only their range: tested - inside the range the picture changes strongly, outside it stays identical, joins are frame-accurate, sound stays in sync (`tests/run_tests.py`).

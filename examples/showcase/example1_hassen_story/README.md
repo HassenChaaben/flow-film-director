@@ -2,6 +2,9 @@
 
 An inspiring biographical video tracing Hassen's journey from Tunisia to completing his Master's in Data Science at UNIVPM and becoming an AI Engineer in Italy.
 
+> [!NOTE]
+> **Security & Privacy Policy:** For biometric voice-security concerns, public examples and test cases on GitHub cannot include the author's original voice audio. [`hassen_story.mp4`](hassen_story.mp4) is uploaded **without sound (video-only)**; audio mixing (`-14 LUFS`, `-20 dB` ducking) was run locally on the private master.
+
 ---
 
 ## Visual Comparison: Before & After
@@ -10,7 +13,7 @@ An inspiring biographical video tracing Hassen's journey from Tunisia to complet
   <thead>
     <tr>
       <th width="35%" align="center">Before (Reference Photo)</th>
-      <th width="65%" align="center">After (Generated Film)</th>
+      <th width="65%" align="center">After (Generated Film · No Sound)</th>
     </tr>
   </thead>
   <tbody>
@@ -19,11 +22,11 @@ An inspiring biographical video tracing Hassen's journey from Tunisia to complet
         <img src="start_reference.jpg" width="300" alt="Hassen Reference Photo" />
       </td>
       <td align="center" valign="middle">
-        <a href="hassen_story.mp4" title="Click to watch full 54.5s film with sound">
+        <a href="hassen_story.mp4" title="Click to watch full 54.5s film (video-only, muted for voice security)">
           <img src="preview.gif" width="460" alt="Generated Film Preview" />
         </a>
         <br/>
-        <sub><a href="hassen_story.mp4">▶ <b>Click to Watch Full Film with Arabic Voiceover (54.5s MP4)</b></a></sub>
+        <sub><a href="hassen_story.mp4">▶ <b>Watch Showcase Film (54.5s MP4 · No Sound)</b></a></sub>
       </td>
     </tr>
   </tbody>

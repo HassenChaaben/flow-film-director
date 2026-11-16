@@ -1,6 +1,6 @@
 {
   "name": "flow-film-director",
-  "version": "1.2.0",
+  "version": "1.5.0",
   "description": "Direct any kind of video in Google Flow (via flow-mcp) with consistent faces, products and places, realistic actions and shot-for-shot reference remakes. Deterministic gated pipeline with measured identity, object and motion checks.",
   "author": { "name": "Hassen Ben Chaaben", "url": "https://github.com/HassenChaaben" },
   "homepage": "https://github.com/HassenChaaben/flow-film-director",

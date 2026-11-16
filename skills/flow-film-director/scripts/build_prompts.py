@@ -265,18 +265,29 @@ def keyframe_prompt(sb, base, sc, which, shot, refs):
     return " ".join(p for p in parts if p)
 
 
-def motion_prompt(sb, base, sc, shot, has_end):
+def is_acting(name: str, beats: list[dict]) -> bool:
+    pat = re.compile(rf"\b{re.escape(name)}\b", re.I)
+    return any(pat.search(b.get("who") or "") for b in beats)
+
+
+def motion_prompt(sb, base, sc, shot, has_end, check_end=None):
     cast = sb["cast"]
     parts = ["The shot begins exactly on the provided first frame."]
     beats = sc.get("beats") or []
     if not beats:
         raise Bad(f"scene {sc['id']}: no beats (the timed actions; use who='camera' for camera-only shots)")
-    acting = set()
     for b in beats:
         parts.append(sentence(f"From {float(b['from']):.1f} s to {float(b['to']):.1f} s: {b['who']} {b['action']}"))
-        acting.add(b["who"])
+    enforce_end = sc.get("use_end_frame", True) if check_end is None else bool(check_end)
     for c in sc.get("characters", []):
-        if c["name"] not in acting:
+        if not is_acting(c["name"], beats):
+            st = (c.get("start") or "").strip().lower()
+            en = (c.get("end") or "").strip().lower()
+            if enforce_end and en and en != st and not sc.get("allow_static_override"):
+                raise Bad(
+                    f"scene {sc['id']}: {c['name']} changes from 'start' to 'end' pose but has no entry in 'beats' - "
+                    f"add a timed beat for {c['name']} so motion does not contradict last_frame ('stays as in the first frame')"
+                )
             parts.append(sentence(f"{c['name']} stays as in the first frame, only natural breathing and blinking"))
     cam = (sc.get("shot") or {}).get("camera_move") or ((shot or {}).get("camera") or {}).get("move") or "static locked-off camera"
     parts.append(sentence(f"Camera: {cam.replace(' + ', ', ')}"))
@@ -600,7 +611,9 @@ def main():
         except Bad as e:
             errors.append(f"audio.soundtrack.file: {e}")
     aspect = sb.get("aspect_ratio", "16:9")
-    for sc in sorted(sb["scenes"], key=lambda s: s["id"]):
+    scenes_sorted = sorted(sb["scenes"], key=lambda s: s["id"])
+    prev_by_id = {scenes_sorted[i]["id"]: (scenes_sorted[i - 1] if i > 0 else None) for i in range(len(scenes_sorted))}
+    for sc in scenes_sorted:
         sid = f"scene-{sc['id']:02d}"
         if only is not None and sc["id"] not in only:
             continue
@@ -617,7 +630,23 @@ def main():
                     raise Bad(f"{sid}: subject {s['name']} not in cast")
             shot = load_shot(sb, base, sc.get("ref_shot"), sc.get("ref_window"))
             model, dur, res = model_and_duration(sb, sc, shot)
-            acc = sc.get("accepted") or {}
+            prev_sc = prev_by_id.get(sc["id"])
+            acc = dict(sc.get("accepted") or {})
+            bridged_from = None
+            if sc.get("bridge_from_prev"):
+                if prev_sc is None:
+                    raise Bad(f"{sid}: bridge_from_prev requires a preceding scene")
+                if not acc.get("start"):
+                    prev_end = (prev_sc.get("accepted") or {}).get("end")
+                    if prev_end:
+                        acc["start"] = prev_end
+                        bridged_from = (prev_sc["id"], prev_end)
+                    elif not prev_sc.get("use_end_frame", True):
+                        raise Bad(
+                            f"{sid}: bridge_from_prev requires scene {prev_sc['id']:02d} to have "
+                            "use_end_frame: true or accepted.end"
+                        )
+            sc_eff = {**sc, "accepted": acc}
 
             # Likeness framing validation
             shot_d = sc.get("shot") or {}
@@ -654,26 +683,36 @@ def main():
                                                encoding="utf-8")
                 continue
             md = [f"# {sid} - {sc.get('title', '')}", ""]
-            refs, dropped = refs_for(sb, base, sc, "start", shot)
-            p = keyframe_prompt(sb, base, sc, "start", shot, refs)
-            check_words(sb, base, sc, p, f"{sid} start keyframe")
-            if not acc.get("start"):  # finished work is never re-requested (no double work, no double spend)
-                s1.append({"type": "image", "prompt": p, "aspect_ratio": aspect, "reference_images": refs,
-                           "variants": int(sc.get("variants", 4)), "max_credits": 0})
-            md += ["## START keyframe", f"refs: {refs}" + (f"  (dropped, max 3: {dropped})" if dropped else ""), "", p, ""]
+            if bridged_from:
+                md += ["## START keyframe", f"bridged from scene {bridged_from[0]:02d} accepted.end ({bridged_from[1]}) — 0 extra credits", ""]
+            elif sc.get("bridge_from_prev") and not acc.get("start"):
+                md += ["## START keyframe", f"waiting for scene {prev_sc['id']:02d} accepted.end to bridge from", ""]
+            else:
+                refs, dropped = refs_for(sb, base, sc_eff, "start", shot)
+                p = keyframe_prompt(sb, base, sc_eff, "start", shot, refs)
+                check_words(sb, base, sc_eff, p, f"{sid} start keyframe")
+                if not acc.get("start"):  # finished work is never re-requested (no double work, no double spend)
+                    s1.append({"type": "image", "prompt": p, "aspect_ratio": aspect, "reference_images": refs,
+                               "variants": int(sc.get("variants", 4)), "max_credits": 0})
+                md += ["## START keyframe", f"refs: {refs}" + (f"  (dropped, max 3: {dropped})" if dropped else ""), "", p, ""]
             if sc.get("use_end_frame", True):
                 if acc.get("start") and not acc.get("end"):
-                    refs_e, dropped_e = refs_for(sb, base, sc, "end", shot)
-                    pe = keyframe_prompt(sb, base, sc, "end", shot, refs_e)
-                    check_words(sb, base, sc, pe, f"{sid} end keyframe")
+                    refs_e, dropped_e = refs_for(sb, base, sc_eff, "end", shot)
+                    pe = keyframe_prompt(sb, base, sc_eff, "end", shot, refs_e)
+                    check_words(sb, base, sc_eff, pe, f"{sid} end keyframe")
                     s2.append({"type": "image", "prompt": pe, "aspect_ratio": aspect, "reference_images": refs_e,
                                "variants": int(sc.get("variants", 4)), "max_credits": 0})
                     md += ["## END keyframe", f"refs: {refs_e}" + (f"  (dropped: {dropped_e})" if dropped_e else ""), "", pe, ""]
                 elif not acc.get("start"):
-                    plan.append(f"- {sid}: END keyframe waits for an accepted START (storyboard accepted.start)")
+                    if sc.get("bridge_from_prev"):
+                        plan.append(f"- {sid}: START bridged from scene {prev_sc['id']:02d} END (waits for scene {prev_sc['id']:02d} accepted.end)")
+                    else:
+                        plan.append(f"- {sid}: END keyframe waits for an accepted START (storyboard accepted.start)")
+            elif sc.get("bridge_from_prev") and not acc.get("start"):
+                plan.append(f"- {sid}: START bridged from scene {prev_sc['id']:02d} END (waits for scene {prev_sc['id']:02d} accepted.end)")
             ready = acc.get("start") and (acc.get("end") or not sc.get("use_end_frame", True))
             has_end = bool(acc.get("end")) and sc.get("use_end_frame", True)
-            mp = motion_prompt(sb, base, sc, shot, has_end=has_end)
+            mp = motion_prompt(sb, base, sc_eff, shot, has_end=has_end, check_end=sc.get("use_end_frame", True))
             check_words(sb, base, sc, mp, f"{sid} motion")
             cost = VEO[model] if model in VEO else OMNI_COST[res][dur]
             md += [f"## VIDEO ({model}, {dur or 8} s, {res or 'fixed'}, ~{cost} credits)"

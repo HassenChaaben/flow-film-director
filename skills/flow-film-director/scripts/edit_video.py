@@ -42,7 +42,9 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from editkit import AR, probe, render_parts, run  # noqa: E402
+from editkit import (
+    AR, audit_segments, build_cut_sheet, probe, render_parts, run, scan_clip_jumps,
+)  # noqa: E402
 
 STRUCTURAL = {"cut", "replace", "splice", "insert", "speed", "freeze"}
 FONTS = ["C:/Windows/Fonts/arialbd.ttf", "C:/Windows/Fonts/arial.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
@@ -60,6 +62,7 @@ def split(segs, t):
             left, right = dict(s), dict(s)
             left["film_end"], left["clip_out"] = t, ct
             right["film_start"], right["clip_in"] = t, ct
+            right.pop("bridged", None)
             out += [left, right]
         else:
             out.append(s)
@@ -334,6 +337,13 @@ def main():
     ap_.add_argument("--timeline", required=True)
     ap_.add_argument("--edits", required=True)
     ap_.add_argument("--out")
+    au = sub.add_parser("audit")
+    au.add_argument("--clip", help="Audit a single generated clip for internal jumps / tail snaps")
+    au.add_argument("--timeline", help="Audit every transition seam and clip segment in a timeline JSON")
+    au.add_argument("--film", help="Audit an assembled standalone film for jumps / dark first frame")
+    au.add_argument("--out-sheet", help="Optional path to save (-1f, cut, +1f) seam inspection sheet")
+    au.add_argument("--jump-mae", type=float, default=12.0)
+    au.add_argument("--tail-sec", type=float, default=0.6)
     a = ap.parse_args()
     if a.cmd == "locate":
         meta = json.loads(Path(a.timeline).read_text(encoding="utf-8"))
@@ -343,6 +353,21 @@ def main():
         Path(a.out).parent.mkdir(parents=True, exist_ok=True)
         run(["-y", "-i", a.film, "-vf", f"select='gte(t\\,{a.at:.4f})'", "-frames:v", "1", "-vsync", "vfr", a.out])
         print(a.out)
+    elif a.cmd == "audit":
+        if a.clip:
+            rep = scan_clip_jumps(a.clip, jump_mae=a.jump_mae, tail_sec=a.tail_sec)
+        elif a.timeline:
+            meta = json.loads(Path(a.timeline).read_text(encoding="utf-8"))
+            segs = meta.get("segments", [])
+            rep = audit_segments(segs, jump_mae=a.jump_mae, tail_sec=a.tail_sec)
+            if a.out_sheet and rep["transitions"]:
+                build_cut_sheet(segs, rep["transitions"], Path(a.out_sheet))
+                rep["sheet"] = str(a.out_sheet)
+        elif a.film:
+            rep = scan_clip_jumps(a.film, jump_mae=a.jump_mae, tail_sec=a.tail_sec)
+        else:
+            raise SystemExit("audit needs --clip, --timeline, or --film")
+        print(json.dumps(rep, indent=2))
     else:
         edits = json.loads(Path(a.edits).read_text(encoding="utf-8"))
         edits = edits.get("edits", edits) if isinstance(edits, dict) else edits

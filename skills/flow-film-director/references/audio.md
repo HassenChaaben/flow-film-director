@@ -30,8 +30,11 @@ Ask in Phase 1, every time (the answers go in `brief.md` and the `audio` block o
    close-microphone dialogue and no music, because clean speech converts best.
 3. **Convert** each accepted dialogue clip:
    `"%VPY%" voice_convert.py clip --profile Sam=voices/Sam/profile.json --in clips/scene-04.mp4 --out clips/scene-04.voiced.mp4`
-   Two speakers in one clip: `--profile Sam=... --profile Lina=... --map "0.0-2.3=Sam,2.6-5.0=Lina"` (times from
-   `flow_transcribe`). Gate: `all_pass` (similarity to the profile >= its pass line), `max_length_change_ms` < 42 (one frame),
+   Two speakers or sparse lines separated by pauses: pass `--profile Sam=... --map "0.0-2.3=Sam,2.6-5.0=Lina"`
+   (times from `flow_transcribe`). `voice_convert.py` clamps strictly to `--map` spans so co-stars and silent gaps
+   stay untouched. If an emotional whisper/shout scores just below `pass_line`, tighten `--map` to only high-energy
+   speech spans (excluding breath pauses) and run a targeted 2nd pass on that line, then re-verify words with `flow_transcribe`.
+   Gate: `all_pass` (similarity to the profile >= its pass line), `max_length_change_ms` < 42 (one frame),
    duration unchanged. The picture is copied bit for bit, so lip-sync stays exactly as Flow made it.
    Put the result in `accepted.clip_voiced`; assembly uses it automatically.
 4. **Check the words**: `flow_transcribe` the voiced clip and compare with the script; a changed word = redo the take.

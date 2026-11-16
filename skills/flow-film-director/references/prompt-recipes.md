@@ -41,6 +41,7 @@ weight and timing, faces stay the same people as in the frame for the whole shot
 each>. <REALISM BLOCK>"
 - Duration (4/6/8/10 s): the action must fill it. ~1 simple action per 4 s. Too long for the action = aimless fidgeting.
 - Dialogue: ~2.5 words/second max, one speaker per clip if possible, mouth visible.
+- Every character whose `start` and `end` pose/position differs in a `use_end_frame` scene MUST have an entry in `beats`; omitting them emits `"stays as in the first frame"`, conflicting with `last_frame` and triggering sudden last-frame snaps.
 
 ## Actions that break (and the realistic version)
 | Breaks | Do instead |

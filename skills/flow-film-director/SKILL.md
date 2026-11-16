@@ -1,7 +1,7 @@
 ---
 name: flow-film-director
 description: Direct any kind of video in Google Flow (flow MCP) with consistent, accurate subjects - short films, shot-for-shot remakes of a reference video, talking heads, product ads, explainers, social reels, music videos, place tours, animated or stylised films, animated photos, event recaps. People keep the SAME face, products and places stay identical, actions look real. Use whenever the user wants a video, film, reel or ad made with Flow, wants to copy a reference video with their own people, or complains that Flow changes faces, loses details or makes fake or funny actions ('keep my exact face', 'same characters', 'same actions as this video', 'a product ad', 'animate this photo'). Deterministic gated pipeline - required idea or reference video, intent profile, cleaned references, measured face/object/motion checks, storyboard.json compiled into exact prompts, verified keyframes, measured review of every clip, assembly and final watch.
-version: 1.4.0
+version: 1.5.0
 declared-hosts:
   - labs.google         # Google Flow, through the user's own signed-in browser session (flow MCP)
   - 127.0.0.1           # local Voicebox app on this computer (loopback only, enforced in code)
@@ -41,7 +41,7 @@ Never retry right away after Flow says "We noticed some unusual activity": stop 
 | Root cause | What it looks like | Fix in this skill |
 |---|---|---|
 | Video from text + `reference_images` only: the model *approximates* the face | "a cousin", nose/jaw/beard change per shot | Animate FROM a verified keyframe (`first_frame`): the identity is in the pixels |
-| Long `chain_previous` chains, unverified continuation frames | Face drifts a bit more every clip | Every scene starts on its own verified keyframe; no chaining by default |
+| Long `chain_previous` video chains or disconnected scene START stills | Face drifts, screen-side flips, or scene teleports at cuts | Bridge continuous scenes from Gate-4 verified `accepted.end` (`bridge_from_prev: true`); inspect a full transition strip in Gate 4 |
 | Big, fast or vague actions, head turns, hands over the face | Morphing, rubber limbs, melting faces | One small action with start + end, face visible, 4-8 s |
 | Small faces in wide shots | Face invented from 40 pixels | Face >= ~15 % of frame height when identity matters |
 | Bad / conflicting reference photos | The model averages them into nobody | Measured audit; user decides each conflict; only clean refs go to Flow |
@@ -205,12 +205,17 @@ still; (c) swap the 2nd/3rd reference; (d) `model: "Nano Banana Pro"` for stills
    that passes every check, in the `ranking` order of the people check (else of the object check); check it against the scene text (and in mode A side by side with the
    reference keyframe: framing, positions, every limb, gaze, props). If the top one fails the visual check, take the
    next passing one; none -> change ONE storyboard field, rebuild with `--only <id>`, regenerate.
-5. Copy the accepted file to `keyframes/scene-NN-start.png`, write its absolute path into `accepted.start`, rebuild,
-   run stage 2 (END frames - a separate call, built from the accepted START, never `reference_previous`), accept
-   `accepted.end` the same way. START and END must be the same moment seconds apart: same people, clothes, light, set,
-   camera.
-6. Log scores and choices in `review/scene-NN.md`; show the user a contact sheet of all keyframes in order.
-   **Gate 4: every keyframe PASS + user approves the keyframe board.** Only now can anything cost credits.
+5. For standalone scenes, copy the accepted file to `keyframes/scene-NN-start.png`, write its path into `accepted.start`,
+   and build stage 2 (`END` frames from the accepted `START`, never `reference_previous`). For **continuous scenes**
+   in the same beat/location where the next cut must flow seamlessly with zero spawns or side flips, set
+   `"bridge_from_prev": true` on scene `N+1`: `build_prompts.py` automatically locks scene `N`'s verified
+   `accepted.end` as scene `N+1`'s `START` (0 extra keyframe credits) and uses it to condition scene `N+1`'s `END`.
+   If a multi-character scene changes a character's `start -> end` pose/visibility, give that character an explicit
+   timed beat in `beats` (`build_prompts.py` rejects omitted characters so `"stays as in the first frame"` never clashes
+   with `last_frame` and causes a last-frame jump cut).
+6. Log scores and choices in `review/scene-NN.md`; show the user BOTH individual keyframes AND a **Transition Board**
+   strip (`S1-END -> S2-START -> S2-END -> S3-START ...`) verifying spatial, prop, side, and lighting lock across
+   every planned cut. **Gate 4: every keyframe PASS + transition strip seamless + user approves.** Only now spend credits.
 
 ## Phase 5 - Animate (credits - ask first)
 1. Rebuild; `plan.md` shows stage 3 and its expected credits. Tell the user the per-scene and total cost; get an
@@ -226,18 +231,21 @@ still; (c) swap the 2nd/3rd reference; (d) `model: "Nano Banana Pro"` for stills
 For EACH take:
 1. Identity: `identity_check.py --expect <people> --every 0.25 <clip>`; read the identity sheet and the worst frame.
    Products/places in the clip: `object_check.py --ref <clean photos> --name <Item> <clip>`. Spoken or sung lines:
-   `flow_transcribe` the clip and compare with the script word by word.
+   `flow_transcribe` the clip and compare with the script word by word. Before reviewing or trimming the clip tail,
+   also run `"%PY%" edit_video.py audit --clip <take>` and inspect a high-density strip (`--at 0,15,30,45,60,75,90,94,97,100`)
+   so 2-6 frame AI tail snaps forcing `last_frame` are never missed. Never trim an ending before confirming with
+   `flow_transcribe` that the final spoken syllable has finished.
    Characters with a voice profile: `"%VPY%" voice_convert.py clip --profile <Name>=voices/<Name>/profile.json
-   --in <take> --out <take>.voiced.mp4` (several speakers: `--map`); gate `all_pass`, timing change < 42 ms; then
-   transcribe the voiced take and compare the words; store it as `accepted.clip_voiced`.
+   --in <take> --out <take>.voiced.mp4` (when co-stars speak or long pauses occur, pass `--map "t0-t1=Name"` so only
+   that active span converts); gate `all_pass`, timing change < 42 ms; then transcribe and verify words; save as `accepted.clip_voiced`.
 2. Mode A: `motion_match.py <clip> --breakdown film/<slug>/reference/breakdown.json --shot shot-NN [--window a b]`;
    read the side-by-side sheet and `largest_differences`; its `trim` goes into the scene.
 3. Realism: `/watch-video` on the clip (or `contact_sheet.py --video <clip> --at 0,15,30,45,60,75,90,100`), then the
    clip checklist and score in review-rubric.md.
 4. Decide (write it in `review/scene-NN.md`):
    - all gates pass -> `accepted.clip` (+ `trim`), copy to `clips/`;
-   - defects only in the last 1.0 s or the first 0.5 s and the rest still covers the planned length -> accept with
-     `trim` (same rule as the rubric);
+   - defects only in the last 1.0 s (e.g., an AI tail snap flagged by `edit_video.py audit`) or the first 0.5 s, with
+     spoken words finished and the remaining body covering the beat -> accept with exact `trim` before the snap;
    - fixable -> the defect -> fix table; change ONE storyboard field, `build_prompts.py --only <id>`, regenerate;
    - small local change on an otherwise perfect clip -> `flow_edit` (~20 credits, no quote; ask first);
    - 3 failed takes -> stop, explain the pattern, propose a simpler version (mode A: an approved deviation).
@@ -251,8 +259,12 @@ For EACH take:
    `accepted.clip_voiced`/`accepted.clip` and `trim`, the `audio` block (soundtrack path, start, fades, beat-snapped
    cuts, ducking, voice-over), -14 LUFS two-pass. Read its report (duration, BPM, cut moves, loudness).
    Mode A: total length = reference window (within 0.2 s per shot); reference audio in sync at every cut.
-3. Final: `identity_check.py --every 0.5` on the film, `/watch-video` on the film (cuts, continuity of clothes, props
-   and light, audio levels, music under dialogue, story). Fix with the Phase 6 loop or Phase 8, re-assemble, re-check.
+3. Transition & Final Audit: `assemble.py` checks every cut seam (`frame_locked < 6` MAE, `soft_match < 12`, `cut >= 12`),
+   flags `bridge_mismatch` on bridged scenes, and warns on dark frame-0 fades. Before delivering, run
+   `"%PY%" edit_video.py audit --timeline film/<slug>/final/film-v1.timeline.json --out-sheet film/<slug>/review/cuts-audit.jpg` and inspect
+   every `(-1f, cut, +1f)` seam row, plus `identity_check.py --every 0.5` and `/watch-video` on the film.
+   **Ghost-free cuts:** use `0.0 s` hard frame-locked cuts on bridges and clean axial punch-in cuts after trimming tail
+   snaps; avoid `xfade` cross-dissolves when head scale or position shifts (causes double-exposure two-head ghosting).
 4. Captions if wanted: transcribe -> confirm -> `flow_captions`.
 5. Deliver: film path, credits from the ledger, per-scene identity / motion / voice scores, approved deviations, limits.
 

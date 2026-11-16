@@ -2,6 +2,9 @@
 
 A dynamic, multi-character combat and choreography sequence inspired by high-octane superhero staging (Deadpool & Wolverine style), featuring two real individuals (Marwen and Hassen) in full tactical battle gear.
 
+> [!NOTE]
+> **Security & Privacy Policy:** For biometric voice-security concerns, all public showcase MP4 files and test cases on GitHub are uploaded **without sound (video-only)**; [`marwen_hassen_action.mp4`](marwen_hassen_action.mp4) has its audio stream removed on GitHub.
+
 ---
 
 ## Visual Comparison: Before & After
@@ -10,7 +13,7 @@ A dynamic, multi-character combat and choreography sequence inspired by high-oct
   <thead>
     <tr>
       <th width="35%" align="center">Before (Reference Photos)</th>
-      <th width="65%" align="center">After (Generated Action Film)</th>
+      <th width="65%" align="center">After (Generated Action Film · No Sound)</th>
     </tr>
   </thead>
   <tbody>
@@ -21,11 +24,11 @@ A dynamic, multi-character combat and choreography sequence inspired by high-oct
         <img src="ref_marwen.jpg" width="145" alt="Marwen Reference" />
       </td>
       <td align="center" valign="middle">
-        <a href="marwen_hassen_action.mp4" title="Click to watch full 51.5s action film">
+        <a href="marwen_hassen_action.mp4" title="Click to watch full 51.5s action film (video-only, no sound)">
           <img src="preview.gif" width="460" alt="Generated Action Sequence Preview" />
         </a>
         <br/>
-        <sub><a href="marwen_hassen_action.mp4">▶ <b>Click to Watch Full Action Film with Soundtrack (51.5s MP4)</b></a></sub>
+        <sub><a href="marwen_hassen_action.mp4">▶ <b>Watch Stunt Remake (51.5s MP4 · No Sound)</b></a></sub>
       </td>
     </tr>
   </tbody>

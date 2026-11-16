@@ -138,7 +138,31 @@ Multi-character video generation is notoriously prone to **cross-contamination**
 
 ---
 
-## 5. Summary Quality Comparison
+## 5. Case Study 3: Horror in the Mosque (`HorrorMosque60`) — Bridge-Locked Supernatural Horror (`v1.5.0`)
+
+> [!NOTE]
+> **Voice-Security Policy:** For security concerns, public examples and test cases on GitHub cannot include the author's original voice audio. All showcase MP4 files in this repository have had audio removed (`video-only`), while loudness and ASR accuracy metrics were measured locally on private masters.
+
+- **Final Deliverable (`v2`)**: [`horror_mosque_v2.mp4`](./example3_horror_mosque/horror_mosque_v2.mp4) (`57.88s`, 720p, `No Sound` on GitHub; private master measured `-14.29 LUFS`, `43/43` Arabic ASR words)
+- **Baseline Comparison (`v1`)**: [`horror_mosque_v1.mp4`](./example3_horror_mosque/horror_mosque_v1.mp4) (`60.0s` un-bridged cut, `No Sound` on GitHub)
+- **Storyboard & Bridge Visuals**: [`storyboard.png`](./example3_horror_mosque/storyboard.png) · [`transition_board.png`](./example3_horror_mosque/transition_board.png)
+- **Bounding Boxes & Cut Audits**: [`identity_boxes_v2.jpg`](./example3_horror_mosque/identity_boxes_v2.jpg) · [`cut_audit_v1.jpg`](./example3_horror_mosque/cut_audit_v1.jpg) · [`cut_audit_v2.jpg`](./example3_horror_mosque/cut_audit_v2.jpg)
+
+### The Challenge
+Even when individual clips pass identity gates, naive cut-by-cut keyframing across 7–8 scenes produces severe narrative breaks:
+1. Characters vanish or teleport across cut boundaries (`S2 -> S3`, `S4 -> S5`).
+2. Props and lighting flip abruptly (extinguished lantern relighting cleanly without cause, cold blue night snapping to orange afternoon daylight at `S6 -> S7`, `MAE = 56.51` and `58.83`).
+3. Generative clips occasionally emit a 2–6 frame "tail snap" back toward an earlier pose, while `xfade` cross-dissolves across scale changes create double-headed ghosting.
+4. Whole-clip voice conversion overwrites co-stars speaking inside the same clip (`Angel` and `Demon`).
+
+### v1.5.0 Breakthroughs Applied
+1. **Bridge-Locked Keyframes (`bridge_from_prev`)**: Scenes 3–6 reused the Gate-4 verified `accepted.end` frame of the previous scene as their `START` and stage-2 continuity reference at **0 credits**, dropping locked boundary deltas from `MAE 15.62–58.83` (`v1`) down to **`MAE 2.05–3.87` (`v2`)**.
+2. **Ghost-Free Axial Cuts & Tail-Snap Audits (`edit_video.py audit`)**: Replaced cross-dissolves with clean axial punch-ins and trimmed `scene-01` (`[0.0, 5.95]`) and `scene-03-v2` (`[0.0, 9.75]`) to strip non-verbal tail snaps without clipping Arabic dialogue (`flow_transcribe`).
+3. **Selective Multi-Speaker `--map` Clamping**: Clamped Chatterbox voice conversion strictly onto Hassen's spoken intervals (`0.0-5.2s` in Scene 4, `0.0-3.5s` in Scene 5 hitting `0.860 PASS` with `+5 ms` drift), keeping the Angel's and Demon's native voices intact.
+
+---
+
+## 6. Summary Quality Comparison
 
 | Parameter | Traditional Unconstrained Prompting | Flow Film Director Pipeline |
 |---|---|---|

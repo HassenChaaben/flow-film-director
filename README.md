@@ -11,10 +11,10 @@
 
 <p align="center">
   <a href="https://m8ven.ai/mcp/hassenchaaben/flow-film-director?s=readme"><img src="https://m8ven.ai/badge/mcp/hassenchaaben/flow-film-director" alt="M8ven Score" /></a>
-  <a href="https://github.com/HassenChaaben/flow-film-director/releases"><img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version 1.2.0" /></a>
+  <a href="https://github.com/HassenChaaben/flow-film-director/releases"><img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version 1.5.0" /></a>
   <a href="https://deepmind.google/technologies/gemini/"><img src="https://img.shields.io/badge/Google%20Antigravity-Ready-4285F4?logo=google&logoColor=white" alt="Google Antigravity Ready" /></a>
   <a href="https://claude.ai"><img src="https://img.shields.io/badge/Claude%20Code-Ready-D97706?logo=anthropic&logoColor=white" alt="Claude Code Ready" /></a>
-  <a href="https://labs.google/flow"><img src="https://img.shields.io/badge/Google%20Flow-Veo%203.1%20%7C%20Omni%201.1-4285F4?logo=google&logoColor=white" alt="Google Flow" /></a>
+  <a href="https://labs.google/flow"><img src="https://img.shields.io/badge/Google%20Flow-Veo%203.1%20%7C%20Omni%201.2-4285F4?logo=google&logoColor=white" alt="Google Flow" /></a>
   <a href="https://github.com/jamiepine/voicebox"><img src="https://img.shields.io/badge/Voicebox-Local%20Voice%20MCP-8B5CF6?logo=soundcharts&logoColor=white" alt="Voicebox Voice Studio" /></a>
   <a href="https://www.remotion.dev"><img src="https://img.shields.io/badge/Remotion-Programmatic%20React%20Video-0B84F3?logo=react&logoColor=white" alt="Remotion" /></a>
   <a href="https://www.agensi.io/skills/flow-film-director"><img src="https://img.shields.io/badge/Agensi%20Store-Pro%20Studio%20($4.99)-6366F1?logo=sparkles&logoColor=white" alt="Get Pro on Agensi" /></a>
@@ -24,11 +24,11 @@
 </p>
 
 <p align="center">
-  <a href="#-quick-start-5-minutes"><b>⚡ Quick Start</b></a> •
+  <a href="#-quick-start--5-minutes"><b>⚡ Quick Start</b></a> •
   <a href="#-free-community-edition-vs-pro-studio-edition-499"><b>💎 Community vs Pro</b></a> •
   <a href="#-production-showcase-examples"><b>🎬 Showcase Films</b></a> •
-  <a href="#-quad-engine-voice-suite--voicebox-integration"><b>🎙️ Voicebox Studio</b></a> •
-  <a href="#-programmatic-video-editing--timeline-automation-remotion"><b>✂️ Remotion Guide</b></a> •
+  <a href="#️-quad-engine-voice-suite--voicebox-integration"><b>🎙️ Voicebox Studio</b></a> •
+  <a href="#️-programmatic-video-editing--timeline-automation-remotion"><b>✂️ Remotion Guide</b></a> •
   <a href="#-creator-production-playbook--prompt-recipes"><b>📘 Creator Playbook</b></a>
 </p>
 
@@ -42,11 +42,12 @@
 
 ## 📑 Table of Contents
 
+- [🎞️ Visual Tour & Production Proofs](#️-visual-tour--production-proofs)
 - [💡 Overview & The Generative Video Problem](#-overview--the-generative-video-problem)
 - [📊 Production Economics: Standard Prompting vs. Flow Film Director](#-production-economics-standard-prompting-vs-flow-film-director)
 - [💎 Free Community Edition vs. Pro Studio Edition ($4.99)](#-free-community-edition-vs-pro-studio-edition-499)
 - [🚀 Key Features & Architectural Innovation](#-key-features--architectural-innovation)
-- [⚡ Quick Start (< 5 Minutes)](#-quick-start-5-minutes)
+- [⚡ Quick Start (< 5 Minutes)](#-quick-start--5-minutes)
 - [📦 Installation & Environment Setup](#-installation--environment-setup)
   - [Prerequisites](#prerequisites)
   - [Master One-Click All-in-One Installer](#master-one-click-all-in-one-installer-recommended)
@@ -55,27 +56,70 @@
 - [🎬 Production Showcase Examples](#-production-showcase-examples)
   - [Case Study 1: Hassen's Story (Docu-Narrative with Arabic Voiceover)](#case-study-1-hassens-story--cinematic-docu-narrative)
   - [Case Study 2: Marwen & Hassen (Superhero Action Stunt Remake)](#case-study-2-marwen--hassen--action-stunt-remake)
+  - [Case Study 3: Horror (3-Actor Supernatural Horror & Bridge-Locked Continuity)](#case-study-3-horror--bridge-locked-supernatural-horror)
 - [📘 Creator Production Playbook & Prompt Recipes](#-creator-production-playbook--prompt-recipes)
   - [The 4 Golden Production Rules](#the-4-golden-production-rules)
   - [Production Storyboard Schema (`storyboard.json`)](#production-storyboard-schema-storyboardjson)
   - [Prompt Recipes (0-Credit Keyframes & Video Motion)](#prompt-recipes)
   - [Actions That Break vs. Production Solutions](#actions-that-break-vs-production-solutions)
-- [🎙️ Quad-Engine Voice Suite & Voicebox Integration](#-quad-engine-voice-suite--voicebox-integration)
+- [🎙️ Quad-Engine Voice Suite & Voicebox Integration](#️-quad-engine-voice-suite--voicebox-integration)
   - [Why Jamie Pine's Voicebox is the Default Studio](#why-jamie-pines-voicebox-is-the-default-studio)
   - [Connecting Voicebox to Your AI Agent](#connecting-voicebox-to-your-ai-agent)
   - [Audio Modes & Sidechain Compression Ducking](#audio-modes--sidechain-compression-ducking)
-- [✂️ Programmatic Video Editing & Timeline Automation (Remotion)](#-programmatic-video-editing--timeline-automation-remotion)
+- [✂️ Programmatic Video Editing & Timeline Automation (Remotion)](#️-programmatic-video-editing--timeline-automation-remotion)
   - [Declarative React Timeline Architecture](#declarative-react-timeline-architecture)
   - [Headless CLI Rendering](#headless-cli-rendering)
   - [Surgical Video Timeline Editing (`edit_video.py`)](#surgical-video-timeline-editing-edit_videopy)
-- [🏗️ Pipeline Architecture & Verification Gates](#-pipeline-architecture--verification-gates)
-  - [End-to-End Execution Sequence](#end-to-end-execution-sequence)
+- [🏗️ Pipeline Architecture & Verification Gates](#️-pipeline-architecture--verification-gates)
   - [Calibrated Quality Gate Thresholds](#calibrated-quality-gate-thresholds)
   - [Repository Layout](#repository-layout)
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
 - [⚠️ Troubleshooting & Frequently Asked Questions](#️-troubleshooting--frequently-asked-questions)
-- [🛡️ Responsible AI Use & Ethical Guardrails](#-responsible-ai-use--ethical-guardrails)
+- [🛡️ Responsible AI Use & Ethical Guardrails](#️-responsible-ai-use--ethical-guardrails)
 - [📜 Credits & License](#-credits--license)
+
+---
+
+## 🎞️ Visual Tour & Production Proofs
+
+Explore what **Flow Film Director `v1.5.0`** actually delivers — from 0-credit storyboarding and biometric SFace box locks to seamless frame-locked transitions across multi-character scenes:
+
+<table>
+  <thead>
+    <tr>
+      <th width="50%" align="center">Production Architecture Overview</th>
+      <th width="50%" align="center">30s Multi-Genre Showcase Reel (<code>v1.5.0</code>)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <a href="examples/showcase/assets/01_alt_hero_cover.png">
+          <img src="examples/showcase/assets/01_alt_hero_cover.png" alt="Flow Film Director v1.5.0 Hero Overview" />
+        </a><br/>
+        <sub><code>0</code>-Credit Storyboards · <code>SFace >= 0.45</code> Face Locks · <code>MAE 2.05</code> Cut Seams · <code>100% Local</code></sub>
+      </td>
+      <td align="center" valign="middle">
+        <a href="examples/showcase/assets/demo_video_30s_agensi.mp4" title="Watch the 30-second multi-genre showcase reel (MP4 · No Sound)">
+          <img src="examples/showcase/assets/01_hero_preview.gif" alt="Flow Film Director Animated Preview" />
+        </a><br/>
+        <sub><a href="examples/showcase/assets/demo_video_30s_agensi.mp4">▶ <b>Watch 30s Demo Reel (720p MP4 · No Sound, 4.08 MB)</b></a></sub>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+| Bridge-Locked Continuity (`v1` vs. `v2`) | Measured Identity Boxes (`YuNet` + `SFace`) |
+|---|---|
+| <a href="examples/showcase/assets/02_v1_vs_v2_bridge_continuity.png"><img src="examples/showcase/assets/02_v1_vs_v2_bridge_continuity.png" alt="Before vs After Bridge-Locked Continuity" /></a> | <a href="examples/showcase/assets/03_identity_lock_boxes.png"><img src="examples/showcase/assets/03_identity_lock_boxes.png" alt="YuNet and SFace Biometric Identity Boxes" /></a> |
+| **0-Credit Storyboard & Bridge Gating** | **3 Verified Production Case Studies** |
+| <a href="examples/showcase/assets/04_zero_credit_storyboard.png"><img src="examples/showcase/assets/04_zero_credit_storyboard.png" alt="0-Credit Storyboard and Bridge Anchors" /></a> | <a href="examples/showcase/assets/05_multi_genre_showcase.png"><img src="examples/showcase/assets/05_multi_genre_showcase.png" alt="Multi-Genre Showcase Summary" /></a> |
+
+<p align="center">
+  <a href="https://www.agensi.io/skills/flow-film-director">
+    <img src="examples/showcase/assets/06_pro_vs_community_features.png" alt="Free Community Edition vs. Pro Studio ($4.99)" width="880" />
+  </a>
+</p>
 
 ---
 
@@ -144,7 +188,7 @@ Flow Film Director is distributed under a transparent **Open Core** model:
 
 <p align="center">
   <a href="https://www.agensi.io/skills/flow-film-director">
-    <img src="https://img.shields.io/badge/🚀%20Get%20Pro%20Studio%20on%20Agensi-Instant%20Access%20($4.99)-6366F1?style=for-the-badge&logo=sparkles&logoColor=white" alt="Upgrade to Pro Studio on Agensi" />
+    <img src="https://img.shields.io/badge/%F0%9F%9A%80%20Get%20Pro%20Studio%20on%20Agensi-Instant%20Access%20($4.99)-6366F1?style=for-the-badge&logo=sparkles&logoColor=white" alt="Upgrade to Pro Studio on Agensi" />
   </a><br/>
   <sub>✅ <i>Security-reviewed & live on the Agensi Marketplace</i></sub>
 </p>
@@ -309,6 +353,8 @@ python install.py --yes --target both --with-voices
 
 ---
 
+### Manual Step-by-Step Configuration
+
 <details>
 <summary><b>🔧 Manual Step-by-Step Configuration (Power Users)</b></summary>
 <br/>
@@ -359,7 +405,7 @@ The `video-creator` agent adapts its directing strategy based on your target cre
 
 | Video Intent | Primary Quality Gate | Directing Strategy | Recommended Model |
 |---|---|---|---|
-| **Docu-Narrative / Story** | Face Identity ($\ge 0.50$ SFace), scene continuity | Keyframe-to-video from locked start stills | Omni 1.1 Flash / Veo 3.1 |
+| **Docu-Narrative / Story** | Face Identity ($\ge 0.50$ SFace), scene continuity | Keyframe-to-video from locked start stills | Omni Flash 1.2 / Veo 3.1 |
 | **Action / Stunt Remake** | MediaPipe joint similarity ($\ge 0.70$) & timing | Shot-by-shot motion remake with pose guidance | Veo 3.1 Fast |
 | **Personal Talking Head** | Lip-sync alignment, facial micro-expressions | Medium close-up, physical hands anchor | Veo 3.1 with real cloned voice |
 | **Product Commercial** | SIFT geometric keypoints ($\ge 40$ inliers) | Fixed studio turntable lighting, locked label | Nano Banana still lock + Veo motion |
@@ -372,17 +418,20 @@ The `video-creator` agent adapts its directing strategy based on your target cre
 
 Real production films directed and assembled end-to-end with Flow Film Director. Complete engineering logs and prompt records are documented in [**`examples/showcase/METHODOLOGY.md`**](examples/showcase/METHODOLOGY.md).
 
+> [!NOTE]
+> **Security & Privacy Policy (No Original Voice Audio on GitHub):** For biometric voice-security concerns, public examples and test cases on GitHub cannot include the author's original voice audio (to prevent unauthorized third-party AI voice cloning). All public showcase MP4 files in this repository and its releases ([`demo_video_30s_agensi.mp4`](examples/showcase/assets/demo_video_30s_agensi.mp4), [`hassen_story.mp4`](examples/showcase/example1_hassen_story/hassen_story.mp4), [`marwen_hassen_action.mp4`](examples/showcase/example2_marwen_hassen_action/marwen_hassen_action.mp4), [`horror_mosque_v1.mp4`](examples/showcase/example3_horror_mosque/horror_mosque_v1.mp4), and [`horror_mosque_v2.mp4`](examples/showcase/example3_horror_mosque/horror_mosque_v2.mp4)) are uploaded **without sound (video-only)**. Audio loudness and Arabic ASR word accuracy metrics were measured locally on the private masters.
+
 ---
 
 ### Case Study 1: Hassen's Story — Cinematic Docu-Narrative
 
-A 54.5-second cinematic documentary tracing a young engineer's journey from Tunisia to Italian robotics laboratories, featuring an authentic cloned Tunisian Arabic voiceover and dynamic background music ducking.
+A 54.5-second cinematic documentary tracing a young engineer's journey from Tunisia to Italian robotics laboratories (produced with cloned Tunisian Arabic voiceover and background music ducking locally; public GitHub MP4 is silent for voice security).
 
 <table>
   <thead>
     <tr>
       <th width="35%" align="center">Reference Identity Photo</th>
-      <th width="65%" align="center">Generated 54.5s Film</th>
+      <th width="65%" align="center">Generated 54.5s Film (`No Sound` on GitHub)</th>
     </tr>
   </thead>
   <tbody>
@@ -392,11 +441,12 @@ A 54.5-second cinematic documentary tracing a young engineer's journey from Tuni
         <sub><b>Input Reference:</b> Single 1080p studio portrait</sub>
       </td>
       <td align="center" valign="middle">
-
-https://github.com/user-attachments/assets/e2f8c8e4-acb5-4b7a-a4eb-55bdde820471
-
-</td>
-</tr>
+        <a href="examples/showcase/example1_hassen_story/hassen_story.mp4" title="Click to watch full 54.5s film (video-only, muted for voice security)">
+          <img src="examples/showcase/example1_hassen_story/preview.gif" width="460" alt="Hassen Story Animated Preview" style="border-radius: 8px;" />
+        </a><br/>
+        <sub><a href="examples/showcase/example1_hassen_story/hassen_story.mp4">▶ <b>Watch Showcase Film (54.5s MP4 · No Sound)</b></a></sub>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -415,7 +465,7 @@ A 51.5-second two-person choreographed stunt sequence inspired by superhero comb
   <thead>
     <tr>
       <th width="35%" align="center">Character Reference Photos</th>
-      <th width="65%" align="center">Generated Stunt Remake Film</th>
+      <th width="65%" align="center">Generated Stunt Remake Film (`No Sound` on GitHub)</th>
     </tr>
   </thead>
   <tbody>
@@ -427,17 +477,114 @@ A 51.5-second two-person choreographed stunt sequence inspired by superhero comb
         <sub><b>Character 1 (Hassen) & Character 2 (Marwen)</b></sub>
       </td>
       <td align="center" valign="middle">
-
-https://github.com/user-attachments/assets/65eb873b-3010-43de-8b5f-56f772244dcb
-
-</td>
-</tr>
+        <a href="examples/showcase/example2_marwen_hassen_action/marwen_hassen_action.mp4" title="Click to watch full 51.5s action film (video-only, muted for security)">
+          <img src="examples/showcase/example2_marwen_hassen_action/preview.gif" width="460" alt="Marwen & Hassen Action Animated Preview" style="border-radius: 8px;" />
+        </a><br/>
+        <sub><a href="examples/showcase/example2_marwen_hassen_action/marwen_hassen_action.mp4">▶ <b>Watch Stunt Remake (51.5s MP4 · No Sound)</b></a></sub>
+      </td>
+    </tr>
   </tbody>
 </table>
 
 **Production Metrics:**
 - **Choreography Match:** 0.76 MediaPipe joint trajectory correlation with original stunt reference.
 - **Multi-Actor Identity Separation:** Zero face blending between Character 1 and Character 2 throughout close-quarters combat.
+
+---
+
+### Case Study 3: Horror — Bridge-Locked Supernatural Horror
+
+A **57.88-second** multi-character live-action horror short (`HorrorMosque60`, **v1.5.0 flagship testcase**) starring **Hassen** (`person`), a **Demon** (`creature`), and a **Good Witch** (`person`, protector) across 7 continuous scenes inside a moonlit stone mosque — showcasing **0-credit storyboard gating**, **YuNet/SFace bounding-box audits**, **v1 vs. v2 bridge-locked continuity fixes (`MAE 2.05–3.87`)**, and **selective multi-speaker Arabic voice cloning** (evaluated locally; public GitHub MP4s omit audio).
+
+<table>
+  <thead>
+    <tr>
+      <th width="36%" align="center">3-Character Locked Cast</th>
+      <th width="64%" align="center">Generated 57.88s Film (`v2` Seamless Overhaul)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center" valign="middle">
+        <img src="examples/showcase/example3_horror_mosque/ref_hassen.jpg" width="90" alt="Hassen Reference" style="border-radius: 6px;" />
+        &nbsp;
+        <img src="examples/showcase/example3_horror_mosque/ref_angel.jpg" width="90" alt="Good Witch Reference" style="border-radius: 6px;" />
+        &nbsp;
+        <img src="examples/showcase/example3_horror_mosque/ref_demon.jpg" width="90" alt="Demon Reference" style="border-radius: 6px;" /><br/>
+        <sub><b>Hassen</b> (Lead) · <b>Good Witch</b> (Protector) · <b>Demon</b> (Creature)</sub>
+      </td>
+      <td align="center" valign="middle">
+        <a href="examples/showcase/example3_horror_mosque/horror_mosque_v2.mp4" title="Click to watch full 57.88s v2 continuous film (video-only, muted for voice security)">
+          <img src="examples/showcase/example3_horror_mosque/preview.gif" width="460" alt="Horror v2 Animated Preview" style="border-radius: 8px;" />
+        </a><br/>
+        <sub>
+          <a href="examples/showcase/example3_horror_mosque/horror_mosque_v2.mp4">▶ <b>Watch <code>v2</code> Seamless Film (57.88s MP4 · No Sound)</b></a>
+          &nbsp;|&nbsp;
+          <a href="examples/showcase/example3_horror_mosque/horror_mosque_v1.mp4">Compare <code>v1</code> Baseline (60.0s Un-Bridged · No Sound)</a>
+        </sub>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+#### Keyframe Storyboard & Bridge-Locked Continuity Plan (`0` Credits)
+
+| 16-Panel Start/End Storyboard (`storyboard.png`) | v2 Bridge-Locked Transition Anchors (`transition_board.png`) |
+|---|---|
+| <a href="examples/showcase/example3_horror_mosque/storyboard.png"><img src="examples/showcase/example3_horror_mosque/storyboard.png" alt="Horror Mosque Keyframe Storyboard" /></a> | <a href="examples/showcase/example3_horror_mosque/transition_board.png"><img src="examples/showcase/example3_horror_mosque/transition_board.png" alt="v2 Bridge-Locked Transition Anchors" /></a> |
+
+#### Bounding-Box Identity & Cut-Seam Forensic Analyses
+
+<table>
+  <thead>
+    <tr>
+      <th width="50%" align="center">YuNet / SFace Bounding-Box Audit (`v2` Film)</th>
+      <th width="50%" align="center">Cast Still Box Verification (`0` Credits)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">
+        <a href="examples/showcase/example3_horror_mosque/identity_boxes_v2.jpg">
+          <img src="examples/showcase/example3_horror_mosque/identity_boxes_v2.jpg" alt="Full Film YuNet SFace Bounding Boxes" />
+        </a><br/>
+        <sub>Green (<code>&gt;=0.50</code>) / Yellow (80° horror profiles) / Red (Demon creature box separation) across <code>57.88s</code></sub>
+      </td>
+      <td align="center">
+        <a href="examples/showcase/example3_horror_mosque/cast_identity_boxes.jpg">
+          <img src="examples/showcase/example3_horror_mosque/cast_identity_boxes.jpg" alt="0-Credit Cast Identity Boxes" />
+        </a><br/>
+        <sub>v2 0-credit Nano Banana cast checks: <code>0.667 PASS</code> (frontal) &amp; <code>0.624 PASS</code> (3/4)</sub>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+| `v1` Un-Bridged Cut Audit (`MAE 15.62–58.83`) | `v2` Frame-Locked Cut Audit (`MAE 2.05–3.87`) |
+|---|---|
+| <a href="examples/showcase/example3_horror_mosque/cut_audit_v1.jpg"><img src="examples/showcase/example3_horror_mosque/cut_audit_v1.jpg" alt="v1 Cut Seam Audit" /></a> | <a href="examples/showcase/example3_horror_mosque/cut_audit_v2.jpg"><img src="examples/showcase/example3_horror_mosque/cut_audit_v2.jpg" alt="v2 Frame-Locked Cut Audit" /></a> |
+
+<details>
+<summary><b>Inspect Complete Visual Audits, Seam MAE Measurements &amp; Before/After Cast Sheets</b></summary>
+
+| Transition Seam | `v1` Baseline (`MAE`) | `v1` Issue Observed | `v2` Overhaul (`MAE`) | Fix Applied (`v1.5.0`) |
+|---|---|---|---|---|
+| `Scene 1 -> 2` | `23.50` (`+ 19.57` tail snap) | Late unmotivated hand-raise at `6.0s` | `15.73` (`cut`) | Trimmed `scene-01` `[0.0, 5.95]` |
+| `Scene 2 -> 3` | `15.62` (`cut`) | Hassen vanishes in 1 frame; Demon spawns | **`2.05` (`frame_locked`)** | Bridged directly from `anchor-s2-end.png` |
+| `Scene 3 -> 4` | `21.95` (`cut`) | Abrupt cut + 4-frame tail flash | `22.64` (`cut`) | Clean axial punch-in + `scene-03-v2` `[0.0, 9.75]` trim |
+| `Scene 4 -> 5` | `26.10` (`cut`) | Demon teleports to neck &amp; robe melts off | **`2.24` (`frame_locked`)** | Locked grab pose &amp; continuous torn cloak |
+| `Scene 5 -> 6` | `38.03` (`cut`) | Demon disappears cleanly in 1 frame | **`3.87` (`frame_locked`)** | Silver beam pushes Demon back as Good Witch descends |
+| `Scene 6 -> 7/8` | `56.51` &amp; `58.83` (`cut`) | 180° screen flip + sunny afternoon flash | **`2.11` (`frame_locked`)** | Locked left/right sanctuary blocking + match-cut lantern reveal |
+
+- [Reference Audit Boxes (`ref_audit_boxes.jpg`)](examples/showcase/example3_horror_mosque/ref_audit_boxes.jpg) · [Hassen Refs vs. Cast (`hassen_refs_vs_cast.jpg`)](examples/showcase/example3_horror_mosque/hassen_refs_vs_cast.jpg) · [Good Witch Before vs. After (`angel_before_vs_after.jpg`)](examples/showcase/example3_horror_mosque/angel_before_vs_after.jpg) · [Demon Before vs. After (`demon_before_vs_after.jpg`)](examples/showcase/example3_horror_mosque/demon_before_vs_after.jpg) · [v1 Identity Boxes (`identity_boxes_v1.jpg`)](examples/showcase/example3_horror_mosque/identity_boxes_v1.jpg) · [Final v2 Contact Board (`film_v2_board.jpg`)](examples/showcase/example3_horror_mosque/film_v2_board.jpg)
+
+</details>
+
+**Production Metrics:**
+- **Bridge Continuity (`edit_video.py audit`):** Boundary pixel delta at frame-locked transitions dropped from **`15.62–58.83` (`v1`)** to **`2.05–3.87` (`v2`)**, eliminating character spawns, axis flips, and ghosting dissolves.
+- **Biometric & Cast Gates:** `0`-credit Hassen cast locks **`0.667 PASS`** & **`0.624 PASS`** (`0.138` cross-sim vs. Good Witch); per-scene v2 passes (`scene-06-v2` `all_pass: true` at `Hassen 0.478 / Good Witch 0.512`, finale `Hassen 0.530 / Good Witch 0.626`); global dark/profile sweep `Hassen 0.457` (`108/117` frames) & `Good Witch 0.511` (`44/117` frames).
+- **Selective `--map` Voice Cloning & Mix:** Cloned Hassen's Arabic lines without overwriting co-stars (`scene-01` `0.867 PASS`, `scene-02` `0.859 PASS`, `scene-05-v2` `--map "0.0-3.5=Hassen"` **`0.860 PASS`**, `+5 ms` drift); final master **`-14.29 LUFS`** (`-1.34 dBTP`) with **`43/43` verified Arabic words**.
+- **Full Case Study Breakdown:** [`examples/showcase/example3_horror_mosque/README.md`](examples/showcase/example3_horror_mosque/README.md)
 
 ---
 
@@ -684,6 +831,9 @@ npx remotion render LowerThird out/overlay.mov --codec=prores --prores-profile=4
 
 Need to tweak a cut, change a title, or mute a sound without re-rendering the whole film? Use surgical timeline editing:
 ```bash
+# Audit transition seam continuity & tail snaps across assembled scenes
+edit_video.py audit --timeline final/film-v1.timeline.json --out-sheet final/cuts.jpg
+
 # Locate exact scene and take from timeline timestamp
 edit_video.py locate --timeline final/film-v1.timeline.json --range 12 15
 
@@ -728,8 +878,10 @@ flow-film-director/
 │   └── TROUBLESHOOTING.md           # Flow connection & credit resolution runbook
 ├── examples/
 │   ├── showcase/
+│   │   ├── assets/                  # 16:9 visual feature tour cards, animated hero GIF & 30s demo reel
 │   │   ├── example1_hassen_story/   # 54.5s Docu-Narrative with Arabic voiceover
 │   │   ├── example2_marwen_hassen_action/ # 51.5s Superhero Stunt Remake
+│   │   ├── example3_horror_mosque/  # 57.88s 3-Actor Horror (`storyboard.png`, box & seam audits, v1 vs v2)
 │   │   └── METHODOLOGY.md           # Deep dive on directing methodology
 │   ├── action.storyboard.json       # Production stunt storyboard example
 │   └── storyboard.example.json      # Complete production storyboard schema

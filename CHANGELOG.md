@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-11-15
+
+### Added
+- **Bridge-locked keyframe transitions (`bridge_from_prev`)** in `build_prompts.py`: continuous scenes automatically reuse the preceding scene's Gate-4 verified `accepted.end` as their `START` and stage-2 reference (`0` extra keyframe credits), preventing character spawns, 180-degree side flips, and lighting jumps at cuts.
+- **Deterministic cut-seam & tail-snap audit (`edit_video.py audit` & `assemble.py`)**: pure `ffmpeg + numpy` frame-delta scanner (`editkit.scan_clip_jumps`, `audit_segments`, `build_cut_sheet`) that detects 2-6 frame AI tail snaps (`recommended_trim_out`), internal jump cuts, solid-black opening frames (`dark_first_frame`), and per-cut boundary seam `MAE` (`frame_locked < 6`, `soft_match < 12`, `cut >= 12`), plus an annotated `(-1f, cut, +1f)` `--out-sheet` strip.
+- **Ghost-free transition & Gate-4 Transition Board rules** across `SKILL.md`, `editing.md`, `review-rubric.md`, and `storyboard-schema.md` (prohibiting `xfade` cross-dissolves across head-scale/position shifts that cause two-head ghosting, and verifying speech tail clearance with `flow_transcribe` before trimming).
+
+### Changed
+- **Multi-character beat enforcement (`build_prompts.py`)**: `is_acting()` now matches compound beats like `"Sam and Lina"` via word boundaries and rejects characters whose `start` and `end` poses differ while omitted from `beats`, eliminating contradictory `"stays as in the first frame"` vs `last_frame` prompts.
+- **Selective `--map` voice clamping (Pro `voice_convert.py` & `audio.md`)**: clamps merged VAD speech regions strictly to explicit `--map` speaker intervals so co-stars and silent gaps are never overwritten or degraded.
+
+### Fixed
+- **Pure-silence loudnorm guard (`editkit.py`, `assemble.py`)**: avoids invalid `measured_I=-inf` two-pass filter failures when assembling silent tracks.
+
 ## [1.4.0] - 2026-11-11
 
 ### Changed

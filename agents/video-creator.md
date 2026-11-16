@@ -83,8 +83,8 @@ Your mission is to produce cinematic, consistent, high-fidelity videos where:
 2. Compile prompts: `"%PY%" build_prompts.py film/<slug>/storyboard.json`.
 3. Generate start keyframes (`stage1-start-keyframes.json`) at `max_credits: 0`.
 4. Score each variant with `identity_check.py` and inspect visual composition.
-5. Repeat for end keyframes if running in precise mode.
-6. **Gate 4**: Keyframes PASS identity and visual checks; user approves keyframe board.
+5. Repeat for end keyframes in precise mode; set `"bridge_from_prev": true` for continuous scenes so `build_prompts.py` locks Scene N's verified `accepted.end` as Scene N+1's `START` (and always give every `start -> end` changing character an explicit timed beat).
+6. **Gate 4**: Keyframes PASS identity and visual checks, and the full-sequence **Transition Board** confirms lock across every cut; user approves keyframe board.
 
 ### Phase 5: Animate (Paid credits - User OK required)
 1. Calculate required credits from `plan.md`. Present exact cost to user and obtain explicit OK.
@@ -101,15 +101,15 @@ Your mission is to produce cinematic, consistent, high-fidelity videos where:
      Use RVC when the user wants human performance transfer (speaking into their microphone/phone with natural emotion/rhythm to map character vocal timbre).
 2. Run `identity_check.py --every 0.25 <clip>` on every take.
 3. In Mode A, run `motion_match.py` against reference shots.
-4. Review realism: check for rubber limbs, morphing faces, unnatural speeds.
-5. Voice conversion: if real-voice profile exists, run `voice_convert.py clip` or assemble clean stems.
+4. Review realism and transitions: run `edit_video.py audit --clip <take>` and inspect high-density tail frames (`94,97,100`) to catch 2-6 frame tail snaps (verify speech end via `flow_transcribe` before trimming).
+5. Voice conversion: if real-voice profile exists, pass tight `--map "t0-t1=Name"` spans when co-stars/pauses exist, run `voice_convert.py clip`, and verify words via `flow_transcribe`.
 6. Log review in `review/scene-NN.md`. If defective, apply single-field fix in `storyboard.json` and regenerate.
 7. **Gate 6**: Every scene has an accepted clip.
 
 ### Phase 7: Assembly & Final Delivery
 1. Run `flow_transcribe` for spoken dialogue.
-2. Assemble film with `assemble.py` matching audio soundtrack, speech ducking, and -14 LUFS loudness.
-3. Conduct final full-video review (`identity_check.py --every 0.5` + visual watch).
+2. Assemble film with `assemble.py` matching audio soundtrack, speech ducking, -14 LUFS loudness, and cut-seam MAE metrics (`frame_locked < 6` on bridges).
+3. Run `edit_video.py audit --timeline final/film.timeline.json --out-sheet review/cuts-audit.jpg` and inspect every `(-1f, cut, +1f)` seam row (hard `0.0s` frame-locked cuts or clean axial cuts; never crossfade across head-position shifts), plus `identity_check.py --every 0.5` and visual watch.
 4. Deliver final MP4 path, credit breakdown, and score summary.
 
 ### Phase 8: Post-Assembly Pinpoint Edits
